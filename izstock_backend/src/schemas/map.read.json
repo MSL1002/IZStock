@@ -1,0 +1,96 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "StoreMap",
+  "type": "object",
+  "required": ["storeId", "version", "sections", "items"],
+  "properties": {
+    "storeId": { "type": "string" },
+    "version": { "type": "integer" },
+    "units": { "type": "string", "enum": ["meters", "feet"], "default": "meters" },
+    "sections": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/section" }
+    },
+    "items": {
+      "type": "object",
+      "description": "Keyed by SKU (the item's primary key)",
+      "additionalProperties": { "$ref": "#/definitions/item" }
+    }
+  },
+  "definitions": {
+    "point": {
+      "type": "array",
+      "items": { "type": "number", "minimum": 0 },
+      "minItems": 2,
+      "maxItems": 2,
+      "description": "x, y coordinates relative to store origin; both must be >= 0"
+    },
+    "polygon": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/point" },
+      "minItems": 3
+    },
+    "section": {
+      "type": "object",
+      "required": ["id", "name", "polygon", "aisles"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "examples": ["Frozen", "Dairy", "Produce"] },
+        "polygon": { "$ref": "#/definitions/polygon" },
+        "color": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "aisles": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/aisle" }
+        }
+      }
+    },
+    "aisle": {
+      "type": "object",
+      "required": ["id", "aisleNumber", "polygon", "shelves"],
+      "properties": {
+        "id": { "type": "string" },
+        "aisleNumber": {
+          "type": "string",
+          "description": "The number/label management uses to reference and batch-move this aisle (req 20-22)",
+          "examples": ["12", "A3"]
+        },
+        "polygon": { "$ref": "#/definitions/polygon" },
+        "shelves": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/shelf" }
+        }
+      }
+    },
+    "shelf": {
+      "type": "object",
+      "required": ["id", "polygon"],
+      "properties": {
+        "id": { "type": "string" },
+        "polygon": { "$ref": "#/definitions/polygon" },
+        "side": { "type": "string", "enum": ["left", "right", "front", "back"] }
+      }
+    },
+    "item": {
+      "type": "object",
+      "required": ["name", "price", "quantity", "shelfId", "aisleNumber"],
+      "properties": {
+        "name": { "type": "string" },
+        "price": { "type": "number", "minimum": 0 },
+        "quantity": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Manually maintained by employees via dashboard (no POS integration in MVP)"
+        },
+        "shelfId": { "type": "string", "description": "References a shelf.id" },
+        "aisleNumber": { "type": "string", "description": "Denormalized for breadcrumb display without walking the tree" },
+        "sectionId": { "type": "string" },
+        "imageUrl": {
+          "type": ["string", "null"],
+          "format": "uri",
+          "default": null,
+          "description": "If null, client renders a placeholder image"
+        }
+      }
+    }
+  }
+}

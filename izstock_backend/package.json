@@ -4,18 +4,26 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "db:seed": "echo unimplemented for now, later change to \"node src/seed.js\"",
+    "db:init": "node src/initDb.js",
+    "db:reset": "node -e \"require('fs').rmSync('data/izstock.db',{force:true});require('fs').rmSync('data/izstock.db-wal',{force:true});require('fs').rmSync('data/izstock.db-shm',{force:true})\" && npm run db:init"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "better-sqlite3": "^13.0.3",
     "cors": "^2.8.6",
     "dotenv": "^18.0.5",
     "express": "^5.2.1",
     "express-rate-limit": "^8.7.0",
     "helmet": "^8.3.0",
+    "morgan": "^1.12.1",
+    "sequelize": "^6.37.8",
     "sqlite3": "^6.0.1",
     "twilio": "^6.1.2"
   },

@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "StoreMapSavePayload",
+  "type": "object",
+  "required": ["storeId", "editedBy", "editedAt", "status", "baseVersion", "sections"],
+  "properties": {
+    "storeId": { "type": "string" },
+    "editedBy": {
+      "type": "string",
+      "description": "Manager sign-in code identifier (req 19)"
+    },
+    "editedAt": { "type": "string", "format": "date-time" },
+    "status": { "type": "string", "enum": ["draft", "published"] },
+    "baseVersion": { "type": "integer" },
+    "units": { "type": "string", "enum": ["meters", "feet"], "default": "meters" },
+    "sections": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/section" }
+    }
+  },
+  "definitions": {
+    "point": {
+      "type": "array",
+      "items": { "type": "number", "minimum": 0 },
+      "minItems": 2,
+      "maxItems": 2,
+      "description": "x, y coordinates; both must be >= 0 relative to store origin"
+    },
+    "polygon": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/point" },
+      "minItems": 3
+    },
+    "section": {
+      "type": "object",
+      "required": ["id", "name", "polygon", "aisles"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "polygon": { "$ref": "#/definitions/polygon" },
+        "color": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "aisles": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/aisle" }
+        }
+      }
+    },
+    "aisle": {
+      "type": "object",
+      "required": ["id", "aisleNumber", "polygon", "shelves"],
+      "properties": {
+        "id": { "type": "string" },
+        "aisleNumber": {
+          "type": "string",
+          "description": "What management edits directly for req 22 (batch move an entire aisle)"
+        },
+        "polygon": { "$ref": "#/definitions/polygon" },
+        "shelves": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/shelf" }
+        }
+      }
+    },
+    "shelf": {
+      "type": "object",
+      "required": ["id", "polygon", "itemSkus"],
+      "properties": {
+        "id": { "type": "string" },
+        "polygon": { "$ref": "#/definitions/polygon" },
+        "side": { "type": "string", "enum": ["left", "right", "front", "back"] },
+        "itemSkus": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "SKUs tagged to this shelf. Validated server-side against the item catalog, which is managed separately via the Item CRUD endpoints (req 10-13), not this map payload."
+        }
+      }
+    }
+  }
+}

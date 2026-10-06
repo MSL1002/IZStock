@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ItemCreateRequest",
+  "type": "object",
+  "required": ["sku", "name", "price", "quantity", "aisleNumber", "shelfId"],
+  "properties": {
+    "sku": {
+      "type": "string",
+      "description": "Primary key for the item; must be unique across the catalog"
+    },
+    "name": { "type": "string" },
+    "price": { "type": "number", "minimum": 0 },
+    "quantity": { "type": "integer", "minimum": 0 },
+    "aisleNumber": {
+      "type": "string",
+      "description": "Must reference an existing aisle on the current published map"
+    },
+    "shelfId": {
+      "type": "string",
+      "description": "Must reference an existing shelf within that aisle on the current published map"
+    },
+    "imageUrl": {
+      "type": ["string", "null"],
+      "format": "uri",
+      "default": null,
+      "description": "If null, client renders a placeholder image"
+    }
+  }
+}
