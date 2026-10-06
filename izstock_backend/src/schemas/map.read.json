@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "StoreMap",
   "type": "object",
-  "required": ["storeId", "version", "sections", "items"],
+  "required": ["storeId", "version", "sections"],
   "properties": {
     "storeId": { "type": "string" },
     "version": { "type": "integer" },
@@ -10,11 +10,6 @@
     "sections": {
       "type": "array",
       "items": { "$ref": "#/definitions/section" }
-    },
-    "items": {
-      "type": "object",
-      "description": "Keyed by SKU (the item's primary key)",
-      "additionalProperties": { "$ref": "#/definitions/item" }
     }
   },
   "definitions": {
@@ -79,7 +74,7 @@
         "quantity": {
           "type": "integer",
           "minimum": 0,
-          "description": "Manually maintained by employees via dashboard (no POS integration in MVP)"
+          "description": "Manually maintained by employees via dashboard"
         },
         "shelfId": { "type": "string", "description": "References a shelf.id" },
         "aisleNumber": { "type": "string", "description": "Denormalized for breadcrumb display without walking the tree" },

@@ -52,7 +52,7 @@
         "id": { "type": "string" },
         "aisleNumber": {
           "type": "string",
-          "description": "What management edits directly for req 22 (batch move an entire aisle)"
+          "description": "What management edits directly (batch move an entire aisle)"
         },
         "polygon": { "$ref": "#/definitions/polygon" },
         "shelves": {
@@ -63,16 +63,11 @@
     },
     "shelf": {
       "type": "object",
-      "required": ["id", "polygon", "itemSkus"],
+      "required": ["id", "polygon"],
       "properties": {
         "id": { "type": "string" },
         "polygon": { "$ref": "#/definitions/polygon" },
-        "side": { "type": "string", "enum": ["left", "right", "front", "back"] },
-        "itemSkus": {
-          "type": "array",
-          "items": { "type": "string" },
-          "description": "SKUs tagged to this shelf. Validated server-side against the item catalog, which is managed separately via the Item CRUD endpoints (req 10-13), not this map payload."
-        }
+        "side": { "type": "string", "enum": ["left", "right", "front", "back"] }
       }
     }
   }

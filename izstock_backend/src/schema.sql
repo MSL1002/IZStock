@@ -56,8 +56,8 @@ CREATE INDEX idx_items_shelf ON items (shelf_id);
 CREATE TABLE IF NOT EXISTS users (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     phone_number  TEXT NOT NULL UNIQUE,
-    full_name     TEXT NOT NULL,
-    created_at    TEXT NOT NULL DEFAULT (datetime('now'))
+    first_name    TEXT NOT NULL,
+    last_name     TEXT NOT NULL,
 );
 
 CREATE TABLE IF NOT EXISTS confirmation_codes (

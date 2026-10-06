@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "ItemCreateRequest",
   "type": "object",
-  "required": ["sku", "name", "price", "quantity", "aisleNumber", "shelfId"],
+  "required": ["sku", "name", "price", "quantity", "shelfId"],
   "properties": {
     "sku": {
       "type": "string",
@@ -11,10 +11,6 @@
     "name": { "type": "string" },
     "price": { "type": "number", "minimum": 0 },
     "quantity": { "type": "integer", "minimum": 0 },
-    "aisleNumber": {
-      "type": "string",
-      "description": "Must reference an existing aisle on the current published map"
-    },
     "shelfId": {
       "type": "string",
       "description": "Must reference an existing shelf within that aisle on the current published map"
