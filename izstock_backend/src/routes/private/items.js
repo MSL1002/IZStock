@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const itemModel = require('../models/itemModel');
+const itemModel = require('../../models/itemModel');
 
 router.get('/:sku', (req, res) => {
     const item = itemModel.findBySku(req.params.sku);

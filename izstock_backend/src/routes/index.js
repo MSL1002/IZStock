@@ -11,6 +11,6 @@ router.get('/health', (req, res) => {
     }
 })
 
-router.use('/items', require('./items.js'));
+router.use('/items', require('./public/items.js'));
 
 module.exports = router;
