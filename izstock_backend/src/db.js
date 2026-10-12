@@ -1,8 +1,8 @@
 const Database = require('better-sqlite3');
-const fs = require('fs');
+const config = require('./config');
 const path = require('path');
 
-const db = new Database(path.join(__dirname, '..', 'data', 'izstock.db'));
+const db = new Database(path.resolve(config.dbPath));
 
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
