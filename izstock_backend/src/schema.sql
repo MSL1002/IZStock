@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS map_versions (
     UNIQUE(store_id, version)
 );
 
-CREATE INDEX idx_map_versions_store
+CREATE INDEX IF NOT EXISTS idx_map_versions_store
     ON map_versions (store_id, version DESC);
 
 CREATE TABLE IF NOT EXISTS sections (
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS aisles (
     polygon      TEXT NOT NULL CHECK (json_valid(polygon))
 );
 
-CREATE INDEX idx_aisles_number ON aisles (aisle_number);
+CREATE INDEX IF NOT EXISTS idx_aisles_number ON aisles (aisle_number);
 
 CREATE TABLE IF NOT EXISTS shelves (
     id        TEXT PRIMARY KEY,
@@ -50,14 +50,14 @@ CREATE TABLE IF NOT EXISTS items (
     image_url   TEXT
 );
 
-CREATE INDEX idx_items_name ON items (name);
-CREATE INDEX idx_items_shelf ON items (shelf_id);
+CREATE INDEX IF NOT EXISTS idx_items_name ON items (name);
+CREATE INDEX IF NOT EXISTS idx_items_shelf ON items (shelf_id);
 
 CREATE TABLE IF NOT EXISTS users (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     phone_number  TEXT NOT NULL UNIQUE,
     first_name    TEXT NOT NULL,
-    last_name     TEXT NOT NULL,
+    last_name     TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS confirmation_codes (
@@ -92,4 +92,4 @@ CREATE TABLE IF NOT EXISTS crud_log (
     details       TEXT CHECK (details IS NULL OR json_valid(details))
 );
 
-CREATE INDEX idx_crud_log_entity ON crud_log (entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_crud_log_entity ON crud_log (entity_type, entity_id);

@@ -7,8 +7,9 @@
     "test": "jest",
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "db:seed": "echo unimplemented for now, later change to \"node src/seed.js\"",
+    "db:seed": "node src/seed.js",
     "db:init": "node src/initDb.js",
+    "db:setup": "npm run db:reset && npm run db:seed",
     "db:reset": "node -e \"require('fs').rmSync('data/izstock.db',{force:true});require('fs').rmSync('data/izstock.db-wal',{force:true});require('fs').rmSync('data/izstock.db-shm',{force:true})\" && npm run db:init"
   },
   "keywords": [],
