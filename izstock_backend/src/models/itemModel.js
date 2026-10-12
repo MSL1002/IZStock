@@ -21,7 +21,22 @@ exports.findBySku = (sku) =>
 
 exports.searchByName = (q, limit = 20) =>
     db.prepare(`${baseSelect} WHERE i.name LIKE ? LIMIT ?`)
-    .all(`${q}%`, limit).map(toItem);
+    .all(`%${q}%`, limit).map(toItem);
+
+exports.suggestByName = (q, limit = 5) =>
+    db.prepare(`${baseSelect} WHERE i.name LIKE @prefix OR i.name LIKE @contains ORDER BY
+      CASE
+        WHEN name LIKE @prefix THEN 0
+        WHEN sku  LIKE @prefix THEN 1
+        ELSE 2
+      END,
+      name
+    LIMIT @limit`)
+    .all({
+    prefix: `${q}%`,
+    contains: `%${q}%`,
+    limit
+  }).map(toItem);
 
 exports.create = ({ sku, name, price, quantity, shelfId, imageUrl }) =>
     db.prepare(`INSERT INTO items (sku, name, price, quantity, shelf_id, image_url)

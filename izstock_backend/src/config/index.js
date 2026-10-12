@@ -1,6 +1,7 @@
 require('dotenv').config();
 
 module.exports = {
-    port: process.env.PORT || 3000,
+    public_port: process.env.PUBLIC_PORT || 3000,
+    private_port: process.env.PRIVATE_PORT || 4000,
     dbPath: process.env.DB_PATH || 'data/izstock.db',
 }

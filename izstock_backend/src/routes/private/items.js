@@ -1,4 +1,4 @@
-const router = require('express').Router();
+const router = require('express');
 const itemModel = require('../../models/itemModel');
 
 router.get('/:sku', (req, res) => {
