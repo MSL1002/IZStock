@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS users (
     phone_number  TEXT NOT NULL UNIQUE,
     first_name    TEXT NOT NULL,
     last_name     TEXT NOT NULL,
-    verified      INTEGER NOT NULL DEFAULT 0 CHECK (verified IN (0, 1)),
+    verified      INTEGER NOT NULL DEFAULT 0 CHECK (verified IN (0, 1))
 );
 
 CREATE TABLE IF NOT EXISTS confirmation_codes (
@@ -67,7 +67,15 @@ CREATE TABLE IF NOT EXISTS confirmation_codes (
     code_hash   TEXT NOT NULL,
     purpose     TEXT NOT NULL CHECK (purpose IN ('registration', 'sign_in')),
     expires_at  TEXT NOT NULL,
+    attempts    INTEGER NOT NULL DEFAULT 0,
     used        INTEGER NOT NULL DEFAULT 0 CHECK (used IN (0, 1))
+);
+
+CREATE TABLE IF NOT EXISTS sessions (
+    token_hash  TEXT PRIMARY KEY,
+    user_id     INTEGER NOT NULL REFERENCES users(id),
+    expires_at  TEXT NOT NULL,
+    created_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS lists (
