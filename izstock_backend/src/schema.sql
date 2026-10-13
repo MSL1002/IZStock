@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS confirmation_codes (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id     INTEGER NOT NULL REFERENCES users(id),
-    code        TEXT NOT NULL,
+    code_hash   TEXT NOT NULL,
     purpose     TEXT NOT NULL CHECK (purpose IN ('registration', 'sign_in')),
     expires_at  TEXT NOT NULL,
     used        INTEGER NOT NULL DEFAULT 0 CHECK (used IN (0, 1))
