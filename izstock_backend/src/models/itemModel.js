@@ -16,14 +16,19 @@ FROM items i
 JOIN shelves s ON s.id = i.shelf_id
 JOIN aisles a ON a.id = s.aisle_id`;
 
+const fromJoin = `
+  FROM items i
+  JOIN shelves s ON s.id = i.shelf_id
+  JOIN aisles a ON a.id = s.aisle_id`;
+
 exports.findBySku = (sku) =>
     toItem(db.prepare(`${baseSelect} WHERE i.sku = ?`).get(sku));
 
-exports.searchByName = (q, limit = 20) =>
+exports.searchByName = (q, limit) =>
     db.prepare(`${baseSelect} WHERE i.name LIKE ? LIMIT ?`)
     .all(`%${q}%`, limit).map(toItem);
 
-exports.suggestByName = (q, limit = 5) =>
+exports.suggestByName = (q, limit) =>
     db.prepare(`${baseSelect} WHERE i.name LIKE @prefix OR i.name LIKE @contains ORDER BY
       CASE
         WHEN name LIKE @prefix THEN 0
@@ -47,3 +52,21 @@ exports.deleteMany = db.transaction((skus) => {
     const del = db.prepare('DELETE FROM items WHERE sku = ?');
     skus.forEach((s) => del.run(s));
 });
+
+exports.list = ({ name, aisle, pageSize, offset }) => {
+  const where = [];
+  const params = [];
+  if (name)   { where.push('(i.name LIKE ? OR i.sku LIKE ?)'); params.push(`%${name}%`, `${name}%`); }
+  if (aisle) { where.push('a.aisle_number = ?');              params.push(aisle); }
+  const clause = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
+  const total = db.prepare(`SELECT COUNT(*) AS n ${fromJoin} ${clause}`).get(...params).n;
+
+  const rows = db.prepare(
+    `SELECT i.*, a.aisle_number ${fromJoin} ${clause}
+     ORDER BY i.name, i.sku
+     LIMIT ? OFFSET ?`
+  ).all(...params, pageSize, offset);
+
+  return { items: rows.map(toItem), total };
+};
