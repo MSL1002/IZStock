@@ -57,7 +57,8 @@ CREATE TABLE IF NOT EXISTS users (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     phone_number  TEXT NOT NULL UNIQUE,
     first_name    TEXT NOT NULL,
-    last_name     TEXT NOT NULL
+    last_name     TEXT NOT NULL,
+    verified      INTEGER NOT NULL DEFAULT 0 CHECK (verified IN (0, 1)),
 );
 
 CREATE TABLE IF NOT EXISTS confirmation_codes (
