@@ -10,6 +10,7 @@ const app = express();
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
+
 if (process.env.NODE_ENV !== 'test') app.use(morgan('dev'));
 
 app.use('/api', routes);
