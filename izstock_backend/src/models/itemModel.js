@@ -17,31 +17,31 @@ JOIN shelves s ON s.id = i.shelf_id
 JOIN aisles a ON a.id = s.aisle_id`;
 
 const fromJoin = `
-  FROM items i
-  JOIN shelves s ON s.id = i.shelf_id
-  JOIN aisles a ON a.id = s.aisle_id`;
+FROM items i
+JOIN shelves s ON s.id = i.shelf_id
+JOIN aisles a ON a.id = s.aisle_id`;
 
 exports.findBySku = (sku) =>
-    toItem(db.prepare(`${baseSelect} WHERE i.sku = ?`).get(sku));
+  toItem(db.prepare(`${baseSelect} WHERE i.sku = ?`).get(sku));
 
 exports.searchByName = (q, limit) =>
-    db.prepare(`${baseSelect} WHERE i.name LIKE ? LIMIT ?`)
-    .all(`%${q}%`, limit).map(toItem);
+  db.prepare(`${baseSelect} WHERE i.name LIKE ? LIMIT ?`)
+  .all(`%${q}%`, limit).map(toItem);
 
 exports.suggestByName = (q, limit) =>
-    db.prepare(`${baseSelect} WHERE i.name LIKE @prefix OR i.name LIKE @contains ORDER BY
-      CASE
-        WHEN name LIKE @prefix THEN 0
-        WHEN sku  LIKE @prefix THEN 1
-        ELSE 2
-      END,
-      name
-    LIMIT @limit`)
-    .all({
-    prefix: `${q}%`,
-    contains: `%${q}%`,
-    limit
-  }).map(toItem);
+  db.prepare(`${baseSelect} WHERE i.name LIKE @prefix OR i.name LIKE @contains ORDER BY
+    CASE
+      WHEN name LIKE @prefix THEN 0
+      WHEN sku  LIKE @prefix THEN 1
+      ELSE 2
+    END,
+    name
+  LIMIT @limit`)
+  .all({
+  prefix: `${q}%`,
+  contains: `%${q}%`,
+  limit
+}).map(toItem);
 
 exports.create = ({ sku, name, price, quantity, shelfId, imageUrl }) =>
     db.prepare(`INSERT INTO items (sku, name, price, quantity, shelf_id, image_url)
@@ -49,8 +49,9 @@ exports.create = ({ sku, name, price, quantity, shelfId, imageUrl }) =>
     .run(sku, name, price, quantity, shelfId, imageUrl ?? null);
 
 exports.deleteMany = db.transaction((skus) => {
-    const del = db.prepare('DELETE FROM items WHERE sku = ?');
-    skus.forEach((s) => del.run(s));
+  const delList = db.prepare('DELETE FROM list_items WHERE sku = ?');
+  const del = db.prepare('DELETE FROM items WHERE sku = ?');
+  skus.forEach((s) => { delList.run(s); del.run(s); });
 });
 
 exports.list = ({ name, aisle, pageSize, offset }) => {

@@ -91,6 +91,8 @@ CREATE TABLE IF NOT EXISTS list_items (
     UNIQUE (list_id, sku)
 );
 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_lists_user ON lists (user_id);
+
 CREATE TABLE IF NOT EXISTS crud_log (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     action        TEXT NOT NULL CHECK (action IN ('create', 'update', 'delete', 'batch_delete')),
