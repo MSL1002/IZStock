@@ -9,7 +9,7 @@ const toUser = (row) => row && ({
 });
 
 exports.findByPhoneNumber = (phoneNumber) =>
-    toUser(db.prepare('SELECT * FROM users WHERE phone_number = ?').get(phoneNumber));
+  toUser(db.prepare('SELECT * FROM users WHERE phone_number = ?').get(phoneNumber));
 
 exports.create = ({ phone, firstName, lastName }) => {
   const info = db.prepare(

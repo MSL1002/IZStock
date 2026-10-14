@@ -4,6 +4,7 @@ const { AppError } = require('../errors');
 let client;
 
 exports.sendCode = async (phone, code) => {
+  console.log('sc hit')
   if (config.smsMode === 'console') {
     console.log(`[SMS dev mode] to ${phone}: ${code}`);
     return;

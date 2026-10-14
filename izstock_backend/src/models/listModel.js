@@ -5,18 +5,18 @@ const toEntry = (row) => row && ({
     quantity: row.quantity
 })
 
-exports.getUserList = (userID) => ({
-    items: db.prepare(`
+exports.getUserList = (userID) => {
+    return db.prepare(`
         SELECT li.sku, li.quantity
         FROM list_items li
         JOIN lists l ON l.id = li.list_id
         WHERE l.user_id = ?
         ORDER BY li.id
         `)
-    .all(userID).map(toEntry),
-});
+    .all(userID)
+};
 
-exports.replace = db.transaction((userID, entries) => {
+exports.replaceList = db.transaction((userID, entries) => {
     const exists = db.prepare('SELECT 1 ITEM FROM items WHERE sku = ?')
     const missing = entries.filter((e) => !exists.get(e.sku)).map((e) => e.sku);
     if(missing.length) return { missing };

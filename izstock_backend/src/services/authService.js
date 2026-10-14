@@ -5,6 +5,7 @@ const userModel = require('../models/userModel');
 const codeModel = require('../models/verificationCodeModel');
 const sessionModel = require('../models/sessionModel');
 const sms = require('./smsService');
+const { log } = require('console');
 
 const CODE_TTL_MS = 5 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
@@ -20,7 +21,6 @@ const invalid = (field, message) => {
 
 function checkBody(body, allowed) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
-    console.log(body);
     throw new AppError(400, 'MALFORMED_REQUEST', 'Request body must be a JSON object');
   }
   const extra = Object.keys(body).filter((k) => !allowed.includes(k));
@@ -31,17 +31,18 @@ function checkBody(body, allowed) {
 
 function normalizePhone(raw) {
   const parsed = parsePhoneNumberFromString(String(raw ?? ''), 'US');
-  if (!parsed || !parsed.isValid()) throw invalid('phone', 'Enter a valid phone number');
+  if (!parsed || !parsed.isValid()) throw new AppError(422, 'VALIDATION_FAILED', 'Invalid phone number', [{ field: 'phone' }]);
   return parsed.number;
 }
 
 function cleanName(value, field) {
   const s = typeof value === 'string' ? value.trim() : '';
-  if (s.length < 1 || s.length > 50) throw invalid(field, `${field} must be 1 to 50 characters`);
+  if (s.length < 1 || s.length > 50) throw new AppError(422, 'VALIDATION_FAILED', `${field} must be 1 - 50 characters in length.`, [{ field: field }])
   return s;
 }
 
 async function issueCode(userId, phone, purpose) {
+  console.log("ic hit")
   const code = String(crypto.randomInt(0, 1_000_000)).padStart(6, '0');
   codeModel.createReplacing({
     userId,
@@ -49,15 +50,27 @@ async function issueCode(userId, phone, purpose) {
     purpose,
     expiresAt: new Date(Date.now() + CODE_TTL_MS).toISOString(),
   });
-  await sms.sendCode(phone, code);
+  try{
+    await sms.sendCode(phone, code);
+  }
+  catch(e){
+    console.log('failed on sendCode: ' + e);
+    throw e;
+  }
+  
 }
 
 // Service functions
 exports.register = async (body) => {
+  console.log('register func hit', body)
   checkBody(body, ['phone', 'firstName', 'lastName']);
+  log('checkBod done')
   const phone = normalizePhone(body.phone);
+  console.log('phone ' + phone)
   const firstName = cleanName(body.firstName, 'firstName');
+  console.log('fname ' + firstName)
   const lastName = cleanName(body.lastName, 'lastName');
+  console.log('lname ' + lastName)
 
   const existing = userModel.findByPhoneNumber(phone);
   if (existing?.verified) {
@@ -72,19 +85,26 @@ exports.register = async (body) => {
   } else {
     userId = userModel.create({ phone, firstName, lastName });
   }
-  await issueCode(userId, phone, 'registration');
+  try{
+    await issueCode(userId, phone, 'registration');
+  }
+  catch (e){
+    console.log('IssueCode failed: ' + e);
+    throw e;
+  }
+  
 };
 
 exports.login = async (body) => {
 
-    checkBody(body, ['phone']);
-    const phone = normalizePhone(body.phone);
-    const user = userModel.findByPhone(phone);
+  checkBody(body, ['phone']);
+  const phone = normalizePhone(body.phone);
+  const user = userModel.findByPhoneNumber(phone);
 
-    if(!user || !user.verified) {
-        throw new AppError(404, 'USER_NOT_FOUND', 'No verified account found for this phone number');
-    }
-    await issueCode(user.id, phone, 'sign_in');
+  if(!user || !user.verified) {
+      throw new AppError(404, 'USER_NOT_FOUND', 'No verified account found for this phone number');
+  }
+  await issueCode(user.id, phone, 'sign_in');
 }
 
 exports.verify = (body) => {
@@ -134,5 +154,5 @@ exports.verify = (body) => {
 };
 
 exports.logout = (tokenHash) => {
-    sessionModel.delete(tokenHash);
+  sessionModel.delete(tokenHash);
 }
