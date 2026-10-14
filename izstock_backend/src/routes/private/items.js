@@ -1,10 +1,29 @@
-const router = require('express');
-const itemModel = require('../../models/itemModel');
+const router = require('express').Router();
+const asyncHandler = require('../../middleware/asyncHandler');
+const itemAdminService = require('../../services/itemAdminService');
+const { parsePagination, buildPage } = require('../../utils/pagination')
 
-router.get('/:sku', (req, res) => {
-    const item = itemModel.findBySku(req.params.sku);
-    if(!item) return res.status(404).json({ error: `Item with SKU ${req.params.sku} not found` });
-    res.json(item);
-})
+const role = (req) => (req.get('X-Manager-Token') ? 'manager' : 'employee');
+
+router.get('/', asyncHandler(async (req, res) => {
+  res.json(itemAdminService.list(req.query, req.query.pg));
+}));
+
+router.post('/', asyncHandler(async (req, res) => {
+  res.status(201).json(itemAdminService.create(req.body, role(req)));
+}));
+
+router.post('/batch-delete', asyncHandler(async (req, res) => {
+  res.json(itemAdminService.batchDelete(req.body, role(req)));
+}));
+
+router.patch('/:sku', asyncHandler(async (req, res) => {
+  res.json(itemAdminService.update(req.params.sku, req.body, role(req)));
+}));
+
+router.delete('/:sku', asyncHandler(async (req, res) => {
+  itemAdminService.remove(req.params.sku, role(req));
+  res.status(204).end();
+}));
 
 module.exports = router;

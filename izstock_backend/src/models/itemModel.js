@@ -43,17 +43,6 @@ exports.suggestByName = (q, limit) =>
   limit
 }).map(toItem);
 
-exports.create = ({ sku, name, price, quantity, shelfId, imageUrl }) =>
-    db.prepare(`INSERT INTO items (sku, name, price, quantity, shelf_id, image_url)
-        VALUES (?, ?, ?, ?, ?, ?)`)
-    .run(sku, name, price, quantity, shelfId, imageUrl ?? null);
-
-exports.deleteMany = db.transaction((skus) => {
-  const delList = db.prepare('DELETE FROM list_items WHERE sku = ?');
-  const del = db.prepare('DELETE FROM items WHERE sku = ?');
-  skus.forEach((s) => { delList.run(s); del.run(s); });
-});
-
 exports.list = ({ name, aisle, pageSize, offset }) => {
   const where = [];
   const params = [];
@@ -70,4 +59,41 @@ exports.list = ({ name, aisle, pageSize, offset }) => {
   ).all(...params, pageSize, offset);
 
   return { items: rows.map(toItem), total };
+};
+
+//EMPLOYEES ONLY
+
+exports.create = ({ sku, name, price, quantity, shelfId, imageUrl }) =>
+    db.prepare(`INSERT INTO items (sku, name, price, quantity, shelf_id, image_url)
+        VALUES (?, ?, ?, ?, ?, ?)`)
+    .run(sku, name, price, quantity, shelfId, imageUrl ?? null);
+
+exports.deleteMany = db.transaction((skus) => {
+  const delList = db.prepare('DELETE FROM list_items WHERE sku = ?');
+  const del = db.prepare('DELETE FROM items WHERE sku = ?');
+  skus.forEach((s) => { delList.run(s); del.run(s); });
+});
+
+exports.update = (sku, fields) => {
+  const sets = [];
+  const params = [];
+  if (fields.name !== undefined)     { sets.push('name = ?');      params.push(fields.name); }
+  if (fields.price !== undefined)    { sets.push('price = ?');     params.push(fields.price); }
+  if (fields.quantity !== undefined) { sets.push('quantity = ?');  params.push(fields.quantity); }
+  if (fields.imageUrl !== undefined) { sets.push('image_url = ?'); params.push(fields.imageUrl); }
+  if (!sets.length) return 0;
+  return db.prepare(`UPDATE items SET ${sets.join(', ')} WHERE sku = ?`).run(...params, sku).changes;
+};
+
+exports.remove = (sku) => {
+  db.prepare('DELETE FROM list_items WHERE sku = ?').run(sku);   // or add ON DELETE CASCADE
+  return db.prepare('DELETE FROM items WHERE sku = ?').run(sku).changes;
+};
+
+exports.shelfExists = (shelfId) =>
+  !!db.prepare('SELECT 1 FROM shelves WHERE id = ?').get(shelfId);
+
+exports.missingSkus = (skus) => {
+  const exists = db.prepare('SELECT 1 FROM items WHERE sku = ?');
+  return skus.filter((s) => !exists.get(s));
 };
