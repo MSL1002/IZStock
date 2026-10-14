@@ -22,7 +22,7 @@ router.post('/verify', (req, res) => {
 
 router.post('/logout', requireSession, (req, res) => {
   authService.logout(req.tokenHash);
-  res.status(204).end;
+  res.status(204).end();
 });
 
 module.exports = router;

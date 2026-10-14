@@ -22,12 +22,15 @@ exports.replaceList = db.transaction((userID, entries) => {
     if(missing.length) return { missing };
 
     const row = db.prepare('SELECT id FROM lists WHERE user_id = ?').get(userID);
-    const listID = row ? row.id : db.prepare('ISERT INTO lists (user_id) VALUES (?)').run(userID).lastInsertRowid;
-
+    const listID = row ? row.id : db.prepare('INSERT INTO lists (user_id) VALUES (?)').run(userID);
     db.prepare('DELETE FROM list_items WHERE list_id = ?').run(listID);
 
     const insert = db.prepare('INSERT INTO list_items (list_id, sku, quantity) VALUES (?, ?, ?)');
-    entries.forEach((e) => insert.run(listID, e.sku, e.quantity));
+    entries.forEach((e) => {
+        let quantity = e?.quantity ?? 1;
+        if(quantity < 1 || quantity > 99) { quantity == 1 }
+        insert.run(listID, e.sku, quantity)
+    });
 
     return{ missing: [] };
 });

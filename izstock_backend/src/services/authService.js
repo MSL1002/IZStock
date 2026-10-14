@@ -42,7 +42,6 @@ function cleanName(value, field) {
 }
 
 async function issueCode(userId, phone, purpose) {
-  console.log("ic hit")
   const code = String(crypto.randomInt(0, 1_000_000)).padStart(6, '0');
   codeModel.createReplacing({
     userId,

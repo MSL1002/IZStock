@@ -7,14 +7,13 @@ const listModel = require('../../models/listModel');
 router.use(requireSession);
 
 router.get('/list', (req, res) => {
-    const list = listModel.getUserList(req.body.user_id);
+    const list = listModel.getUserList(req.user_id);
     if(list.length === 0) return res.status(200).json({ list: 'No items in this list' })
     res.status(200).json(listModel.getUserList(req.user_id));
 });
 
 router.put('/list', (req, res) => {
-    listModel.replaceList(req.body.user_id, req.body.items);
-    res.status(200);
+    res.json(listModel.replaceList(req.user_id, req.body.items));
 });
 
 module.exports = router;

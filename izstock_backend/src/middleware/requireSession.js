@@ -1,6 +1,8 @@
+const db = require('../db');
 const {AppError} = require('../errors');
 const sessionModel = require('../models/sessionModel');
 const { hashToken } = require('../services/authService');
+
 
 module.exports = (req, res, next) => {
     const [scheme, token] = (req.get('Authorization') || '').split(' ');
@@ -9,6 +11,7 @@ module.exports = (req, res, next) => {
     }
     const tokenHash = hashToken(token);
     const session = sessionModel.findValid(tokenHash);
+    const userId = sessionModel.findUserByTokenHash(tokenHash);
     if (!session) {
         throw new AppError(401, 'UNAUTHORIZED', 'Missing or invalid session token.');
     }
@@ -18,5 +21,6 @@ module.exports = (req, res, next) => {
         lastName: session.last_name
     }
     req.tokenHash = tokenHash;
+    req.user_id = userId;
     next();
 }
