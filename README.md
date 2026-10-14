@@ -31,7 +31,7 @@ The IZStock backend is seperated into 2 distinct parts, publicly accessible rout
 | /auth/login                 | POST   | {phone}                       | Sends an SMS code for user login.                                                                       |
 | /auth/verify                | POST   | {phone, code}                 | Returns a session token.                                                                                |
 | /auth/logout                | POST   | {tokenHash}                   | Invalidates user's session token.                                                                       |
-| /me/list                    | GET    | {tokenHAsh}                   | Fetch saved list using the bearer token.                                                                |
+| /me/list                    | GET    | {tokenHash}                   | Fetch saved list using the bearer token.                                                                |
 | /me/list                    | PUT    | {tokenHash}                   | Replace the list when a user updates their list.                                                        |
 
 ### Web Dashboard
