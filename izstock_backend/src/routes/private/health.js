@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const db = require('../../db');
 
-router.get('/health', (req, res) => {
+router.get('/', (req, res) => {
     try{
         db.prepare('SELECT 1').get();
         res.json({status: 'ok'});
