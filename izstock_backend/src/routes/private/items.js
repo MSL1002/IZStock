@@ -3,7 +3,7 @@ const asyncHandler = require('../../middleware/asyncHandler');
 const itemAdminService = require('../../services/itemAdminService');
 const { parsePagination, buildPage } = require('../../utils/pagination')
 
-const role = (req) => (req.get('X-Manager-Token') ? 'manager' : 'employee');
+const role = (req) => (/^Bearer .+/.test(req.get('Authorization') || '') ? 'manager' : 'employee');
 
 router.get('/', asyncHandler(async (req, res) => {
   res.json(itemAdminService.list(req.query));

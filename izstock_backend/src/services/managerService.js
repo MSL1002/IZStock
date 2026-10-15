@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const db = require('../db.js');
-const AppError = require('../errors.js');
+const {AppError} = require('../errors.js');
 const managerTokens = require('../lib/managerTokens');
 
 const MAX_FAILS = 5;

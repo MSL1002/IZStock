@@ -1,15 +1,5 @@
 const db = require('../db.js');
 
-const toVerificationCode = (row) => row && ({
-    id: row.id,
-    user_id: row.user_id,
-    code: row.code,
-    purpose: row.purpose,
-    expires_at: row.expires_at,
-    attempts: row.attempts,
-    used: row.used
-});
-
 // create a new verification code for a user, overriding last
 exports.createReplacing = ({ userId, codeHash, purpose, expiresAt }) => {
   db.prepare('UPDATE confirmation_codes SET used = 1 WHERE user_id = ? AND used = 0').run(userId);

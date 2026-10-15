@@ -1,6 +1,7 @@
 const express = require('express');
 const { errorHandler, notFound } = require('../src/middleware/errorHandler');
 const cors = require('cors');
+const requireManager = require('../src/middleware/requireManager');
 // const requireManager = require('../middleware/requireManager');
 
 const app = express();
@@ -13,7 +14,7 @@ app.use('/logs', require('../src/routes/private/logs'));
 app.use('/health', require('../src/routes/private/health'));
 
 // Manager-only routes
-// app.use('/map', requireManager, require('../src/routes/private/map'));
+app.use('/map', requireManager, require('../src/routes/private/map'));
 // app.use('/locations', requireManager, require('../src/routes/private/locations'));
 
 // if else, 404

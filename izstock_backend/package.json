@@ -8,6 +8,7 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "db:seed": "node src/seed.js",
+    "db:seed_manager": "node src/seedManager.js MANAGER1",
     "db:init": "node src/initDb.js",
     "db:setup": "npm run db:reset && npm run db:seed",
     "db:reset": "node -e \"require('fs').rmSync('data/izstock.db',{force:true});require('fs').rmSync('data/izstock.db-wal',{force:true});require('fs').rmSync('data/izstock.db-shm',{force:true})\" && npm run db:init"
@@ -17,6 +18,8 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
     "better-sqlite3": "^13.0.3",
     "cors": "^2.8.6",
     "dotenv": "^18.0.5",
