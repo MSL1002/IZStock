@@ -9,7 +9,7 @@ app.use(express.json());
 
 app.use('/items', require('../src/routes/private/items'));
 app.use('/manager', require('../src/routes/private/manager'));
-// app.use('/logs', require('../src/routes/private/logs'));
+app.use('/logs', require('../src/routes/private/logs'));
 app.use('/health', require('../src/routes/private/health'));
 
 // Manager-only routes

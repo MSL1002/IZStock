@@ -6,7 +6,7 @@ const { parsePagination, buildPage } = require('../../utils/pagination')
 const role = (req) => (req.get('X-Manager-Token') ? 'manager' : 'employee');
 
 router.get('/', asyncHandler(async (req, res) => {
-  res.json(itemAdminService.list(req.query, req.query.pg));
+  res.json(itemAdminService.list(req.query));
 }));
 
 router.post('/', asyncHandler(async (req, res) => {

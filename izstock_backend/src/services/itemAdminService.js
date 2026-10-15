@@ -1,7 +1,7 @@
 const db = require('../db.js');
-const AppError = require('../errors.js');
+const {AppError} = require('../errors.js');
 const itemModel = require('../models/itemModel');
-const logModel = require('../models/crudLogModel.js');
+const logModel = require('../models/logModel.js');
 const { parsePagination, buildPage } = require('../utils/pagination.js');
 
 const bad = (msg, field) => new AppError(422, 'VALIDATION_FAILED', msg, field && [{ field }]);
@@ -84,8 +84,8 @@ exports.batchDelete = (body, role) => {
     return { deleted: skus.length };
 };
 
-exports.list = (query, page) => {
-    query.page = page
+exports.list = (query) => {
+    console.log(query.pg)
     const pg = parsePagination(query, {defaultSize:15});
     const { items, total } = itemModel.list({
         name: query.q?.trim() || undefined,

@@ -4,8 +4,8 @@ const bad = (field, message) =>
   new AppError(422, 'VALIDATION_FAILED', message, [{ field, message }]);
 
 exports.parsePagination = (query, { defaultSize = 25, maxSize = 100 } = {}) => {
-  const page = query.page === undefined ? 1 : Number(query.page);
-  const pageSize = query.pageSize === undefined ? defaultSize : Number(query.pageSize);
+  const page = query.pg === undefined ? 1 : Number(query.pg);
+  const pageSize = query.pgSize === undefined ? defaultSize : Number(query.pgSize);
 
   if (!Number.isInteger(page) || page < 1) throw bad('page', 'page must be an integer >= 1');
   if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > maxSize) {
