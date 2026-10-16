@@ -15,7 +15,7 @@ app.use('/health', require('../src/routes/private/health'));
 
 // Manager-only routes
 app.use('/map', requireManager, require('../src/routes/private/map'));
-// app.use('/locations', requireManager, require('../src/routes/private/locations'));
+app.use('/locations', requireManager, require('../src/routes/private/locations'));
 
 // if else, 404
 app.use(notFound);

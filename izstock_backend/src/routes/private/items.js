@@ -1,6 +1,8 @@
 const router = require('express').Router();
 const asyncHandler = require('../../middleware/asyncHandler');
+const requireManager = require('../../middleware/requireManager');
 const itemAdminService = require('../../services/itemAdminService');
+const locationService = require('../../services/locationService')
 const { parsePagination, buildPage } = require('../../utils/pagination')
 
 const role = (req) => (/^Bearer .+/.test(req.get('Authorization') || '') ? 'manager' : 'employee');
@@ -24,6 +26,10 @@ router.patch('/:sku', asyncHandler(async (req, res) => {
 router.delete('/:sku', asyncHandler(async (req, res) => {
   itemAdminService.remove(req.params.sku, role(req));
   res.status(204).end();
+}));
+
+router.patch('/:sku/location', requireManager, asyncHandler(async (req, res) => {
+    res.json(locationService.moveItem(req.params.sku, req.body, 'manager'));
 }));
 
 module.exports = router;

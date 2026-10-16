@@ -97,3 +97,6 @@ exports.missingSkus = (skus) => {
   const exists = db.prepare('SELECT 1 FROM items WHERE sku = ?');
   return skus.filter((s) => !exists.get(s));
 };
+
+exports.setShelf = (sku, shelfId) =>
+    db.prepare('UPDATE items SET shelf_id = ? WHERE sku = ?').run(shelfId, sku).changes;

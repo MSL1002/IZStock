@@ -16,6 +16,9 @@ const toMap = (row) => row && ({
     payload: row.payload ? JSON.parse(row.payload) : null,
 });
 
+exports.getStore = () =>
+    db.prepare('SELECT store_id, current_version FROM stores LIMIT 1').get();
+
 exports.getMap = () =>
     toMap(db.prepare('SELECT * FROM map_versions ORDER BY version DESC LIMIT 1').get());
 
@@ -152,4 +155,27 @@ exports.apply = ({ storeId, version, payload, skuToShelf }) => {
         .run(crypto.randomUUID(), storeId, version, JSON.stringify(payload));
     db.prepare('UPDATE stores SET current_version = ? WHERE store_id = ?')
         .run(version, storeId);
+};
+
+exports.bumpVersion = (storeId) => {
+    const store = db.prepare('SELECT current_version FROM stores WHERE store_id = ?').get(storeId);
+    const version = store.current_version + 1;
+
+    const payload = {
+        storeId,
+        editedBy: 'manager',
+        editedAt: new Date().toISOString(),
+        status: 'published',
+        baseVersion: store.current_version,
+        units: exports.getUnits(storeId, store.current_version),
+        sections: exports.loadSections(storeId, { includeSkus: true }),
+    };
+
+    console.log(payload);
+
+    db.prepare('INSERT INTO map_versions (id, store_id, version, payload) VALUES (?, ?, ?, ?)')
+        .run(crypto.randomUUID(), storeId, version, JSON.stringify(payload));
+    db.prepare('UPDATE stores SET current_version = ? WHERE store_id = ?').run(version, storeId);
+    console.log(version, storeId)
+    return version;
 };
