@@ -42,6 +42,8 @@ The webdashboard is used by employees / managers on-site. It works as an intrane
 
 ### Mobile Application
 
+The mobile app is used by customers, and displays the items along with a map. The map shows where item's are to the user and can show where every item on their list is. Users also have the option to create and sign into accounts to allow for lists to persist accross devices.
+
 #### Public Routes
 
 | Endpoint                    | Method | Body                          | Action                                                                                                  |
