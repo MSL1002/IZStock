@@ -171,11 +171,8 @@ exports.bumpVersion = (storeId) => {
         sections: exports.loadSections(storeId, { includeSkus: true }),
     };
 
-    console.log(payload);
-
     db.prepare('INSERT INTO map_versions (id, store_id, version, payload) VALUES (?, ?, ?, ?)')
         .run(crypto.randomUUID(), storeId, version, JSON.stringify(payload));
     db.prepare('UPDATE stores SET current_version = ? WHERE store_id = ?').run(version, storeId);
-    console.log(version, storeId)
     return version;
 };
