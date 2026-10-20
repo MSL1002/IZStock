@@ -6,7 +6,6 @@ const requireSession = require('../../middleware/requireSession');
 const authService = require('../../services/authService');
 
 router.post('/register', asyncHandler(async (req, res, next) => {
-  console.log('register route reached')
   await authService.register(req.body);
   res.status(202).json({ message: 'Verification code sent.' });
 }));

@@ -1,4 +1,4 @@
-const rateLimit = import('express-rate-limit');
+const rateLimit = require('express-rate-limit');
 
 const handler = (req, res) =>
   res.status(429).json({
@@ -12,8 +12,8 @@ module.exports = {
   general: make(60_000, 120),                 // all public routes
   suggest: make(60_000, 300),                 // autocomplete fires per keystroke
   auth: make(15 * 60_000, 10),                // per IP: register/login/verify
-  smsPerPhone: make(60 * 60_000, 5, {         // per phone: protects Twilio credit
-    keyGenerator: (req) => `phone:${String(req.body?.phone ?? '').replace(/\D/g, '')}`,
+  msgPerEmail: make(60 * 60_000, 5, {         // per email: protects mailgun account
+    keyGenerator: (req) => `email:${String(req.body?.email ?? '').replace(/\D/g, '')}`,
   }),
   managerUnlock: make(15 * 60_000, 5),        // brute-force guard on the 8-char code
 };

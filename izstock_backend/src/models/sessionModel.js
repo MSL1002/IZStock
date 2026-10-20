@@ -6,7 +6,7 @@ exports.create = ({ tokenHash, userId, expiresAt }) =>
 
 exports.findValid = (tokenHash) =>
   db.prepare(
-    `SELECT s.token_hash, u.id, u.first_name, u.last_name, u.phone_number
+    `SELECT s.token_hash, u.id, u.first_name, u.last_name, u.email
      FROM sessions s JOIN users u ON u.id = s.user_id
      WHERE s.token_hash = ?`
   ).get(tokenHash);

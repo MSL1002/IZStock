@@ -48,14 +48,14 @@ The mobile app is used by customers, and displays the items along with a map. Th
 
 | Endpoint                    | Method | Body                          | Action                                                                                                  |
 |-----------------------------|--------|-------------------------------|---------------------------------------------------------------------------------------------------------|
-| /items/search?name=&limit=  | GET    | N/A                           | Search the items database by name. Get as many items as the limit says. (default limit is 20).          |
+| /items/search?name=&page=&pgSize=  | GET    | N/A                           | Search the items database by name. Paginates the output, page size default is 25.          |
 | /items/suggest?name=&limit= | GET    | N/A                           | Lightweight autocomplete for item's by name. Get as many items as the limit says. (default limit is 10). |
 | /items/lookup               | POST   | {skus: [...]}                 | Returns a list of items from a list of SKUs.                                                            |
 | /map                        | GET    | N/A                           | Get most recent version of the published map.                                                           |
 | /map/version                | GET    | N/A                           | Get the most recent map's version number.                                                               |
-| /auth/register              | POST   | {phone, firstName, lastName,} | Begins registartion process. Sends an SMS code to provided phone number.                                |
-| /auth/login                 | POST   | {phone}                       | Sends an SMS code for user login.                                                                       |
-| /auth/verify                | POST   | {phone, code}                 | Returns a session token.                                                                                |
+| /auth/register              | POST   | {email, firstName, lastName,} | Begins registartion process. Sends an code to provided email.                                |
+| /auth/login                 | POST   | {email}                       | Sends an SMS code for user login.                                                                       |
+| /auth/verify                | POST   | {email, code}                 | Returns a session token.                                                                                |
 | /auth/logout                | POST   | {tokenHash}                   | Invalidates user's session token.                                                                       |
 | /me/list                    | GET    | {tokenHash}                   | Fetch saved list using the bearer token.                                                                |
 | /me/list                    | PUT    | {tokenHash}                   | Replace the list when a user updates their list.                                                        |

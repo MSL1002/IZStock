@@ -149,8 +149,8 @@ for (const row of items) insItem.run(...row);
 
 // Test user with a saved list (for testing list persistence, req 6)
 const userId = db.prepare(
-    'INSERT INTO users (phone_number, first_name, last_name) VALUES (?, ?, ?)')
-    .run('+18015550100', 'Test', 'User').lastInsertRowid;
+    'INSERT INTO users (email, first_name, last_name) VALUES (?, ?, ?)')
+    .run('8mrl1002@gmail.com', 'Test', 'User').lastInsertRowid;
 const listId = db.prepare('INSERT INTO lists (user_id) VALUES (?)')
     .run(userId).lastInsertRowid;
 const insListItem = db.prepare(

@@ -1,10 +1,10 @@
 const crypto = require('crypto');
-const { parsePhoneNumberFromString } = require('libphonenumber-js');
 const { AppError } = require('../errors');
 const userModel = require('../models/userModel');
 const codeModel = require('../models/verificationCodeModel');
 const sessionModel = require('../models/sessionModel');
-const sms = require('./smsService');
+const Email = require('./emailService');
+const validator = require('email-validator')
 const { log } = require('console');
 
 const CODE_TTL_MS = 5 * 60 * 1000;
@@ -29,10 +29,11 @@ function checkBody(body, allowed) {
   }
 }
 
-function normalizePhone(raw) {
-  const parsed = parsePhoneNumberFromString(String(raw ?? ''), 'US');
-  if (!parsed || !parsed.isValid()) throw new AppError(422, 'VALIDATION_FAILED', 'Invalid phone number', [{ field: 'phone' }]);
-  return parsed.number;
+function checkEmail(email){
+  if(!validator.validate(email)){
+    throw new AppError(422, 'VALIDATION_FAILED', 'Invalid email address', [{field: 'email'}])
+  }
+  return email;
 }
 
 function cleanName(value, field) {
@@ -41,7 +42,7 @@ function cleanName(value, field) {
   return s;
 }
 
-async function issueCode(userId, phone, purpose) {
+async function issueCode(userId, email, purpose) {
   const code = String(crypto.randomInt(0, 1_000_000)).padStart(6, '0');
   codeModel.createReplacing({
     userId,
@@ -50,7 +51,7 @@ async function issueCode(userId, phone, purpose) {
     expiresAt: new Date(Date.now() + CODE_TTL_MS).toISOString(),
   });
   try{
-    await sms.sendCode(phone, code);
+    await Email.sendCode(email, code);
   }
   catch(e){
     console.log('failed on sendCode: ' + e);
@@ -61,19 +62,18 @@ async function issueCode(userId, phone, purpose) {
 
 // Service functions
 exports.register = async (body) => {
-  console.log('register func hit', body)
-  checkBody(body, ['phone', 'firstName', 'lastName']);
-  log('checkBod done')
-  const phone = normalizePhone(body.phone);
-  console.log('phone ' + phone)
+  checkBody(body, ['email', 'firstName', 'lastName']);
+
+  const email = checkEmail(body.email);
+  console.log('email ' + email)
   const firstName = cleanName(body.firstName, 'firstName');
   console.log('fname ' + firstName)
   const lastName = cleanName(body.lastName, 'lastName');
   console.log('lname ' + lastName)
 
-  const existing = userModel.findByPhoneNumber(phone);
+  const existing = userModel.findByEmail(email);
   if (existing?.verified) {
-    throw new AppError(409, 'PHONE_EXISTS', 'An account already uses this phone number');
+    throw new AppError(409, 'EMAIL_EXISTS', 'An account already uses this email');
   }
 
   // An unverified leftover from an abandoned signup is reused, not duplicated
@@ -82,10 +82,10 @@ exports.register = async (body) => {
     userId = existing.id;
     userModel.updateName(userId, firstName, lastName);
   } else {
-    userId = userModel.create({ phone, firstName, lastName });
+    userId = userModel.create({ email, firstName, lastName });
   }
   try{
-    await issueCode(userId, phone, 'registration');
+    await issueCode(userId, email, 'registration');
   }
   catch (e){
     console.log('IssueCode failed: ' + e);
@@ -96,24 +96,25 @@ exports.register = async (body) => {
 
 exports.login = async (body) => {
 
-  checkBody(body, ['phone']);
-  const phone = normalizePhone(body.phone);
-  const user = userModel.findByPhoneNumber(phone);
+  checkBody(body, ['email']);
+  const email = checkEmail(body.email);
+  const user = userModel.findByEmail(email);
 
   if(!user || !user.verified) {
-      throw new AppError(404, 'USER_NOT_FOUND', 'No verified account found for this phone number');
+      throw new AppError(404, 'USER_NOT_FOUND', 'No verified account found for this email');
   }
-  await issueCode(user.id, phone, 'sign_in');
+  await issueCode(user.id, email, 'sign_in');
 }
 
 exports.verify = (body) => {
-    checkBody(body, ['phone', 'code']);
-    const phone = normalizePhone(body.phone);
+    checkBody(body, ['email', 'code']);
+    const email = checkEmail(body.email);
     if (typeof body.code !== 'string' || !/^\d{6}$/.test(body.code)) {
         throw invalid('code', 'Code must be a 6-digit string');
     }
-
-    const user = userModel.findByPhoneNumber(phone);
+    console.log(email);
+    const user = userModel.findByEmail(email);
+    console.log(user)
     const record = user && codeModel.findActive(user.id);
     if (!record) {
         throw new AppError(404, 'INVALID_CODE', 'Incorrect or expired code');
@@ -147,7 +148,7 @@ exports.verify = (body) => {
         user: {
             firstName: user.first_name,
             lastName: user.last_name,
-            phone: user.phone_number
+            email: user.email_number
         }
     }
 };

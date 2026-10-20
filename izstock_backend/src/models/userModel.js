@@ -4,17 +4,17 @@ const toUser = (row) => row && ({
     id: row.id,
     first_name: row.first_name,
     last_name: row.last_name,
-    phone_number: row.phone_number,
+    email: row.email,
     verified: row.verified
 });
 
-exports.findByPhoneNumber = (phoneNumber) =>
-  toUser(db.prepare('SELECT * FROM users WHERE phone_number = ?').get(phoneNumber));
+exports.findByEmail = (email) =>
+  toUser(db.prepare('SELECT * FROM users WHERE email = ?').get(email));
 
-exports.create = ({ phone, firstName, lastName }) => {
+exports.create = ({ email, firstName, lastName }) => {
   const info = db.prepare(
-    'INSERT INTO users (phone_number, first_name, last_name) VALUES (?, ?, ?)'
-  ).run(phone, firstName, lastName);
+    'INSERT INTO users (email, first_name, last_name) VALUES (?, ?, ?)'
+  ).run(email, firstName, lastName);
   return info.lastInsertRowid;
 };
 
