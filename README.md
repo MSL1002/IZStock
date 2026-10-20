@@ -54,7 +54,7 @@ The mobile app is used by customers, and displays the items along with a map. Th
 | /map                        | GET    | N/A                           | Get most recent version of the published map.                                                           |
 | /map/version                | GET    | N/A                           | Get the most recent map's version number.                                                               |
 | /auth/register              | POST   | {email, firstName, lastName,} | Begins registartion process. Sends an code to provided email.                                |
-| /auth/login                 | POST   | {email}                       | Sends an SMS code for user login.                                                                       |
+| /auth/login                 | POST   | {email}                       | Emails a code for user login.                                                                       |
 | /auth/verify                | POST   | {email, code}                 | Returns a session token.                                                                                |
 | /auth/logout                | POST   | {tokenHash}                   | Invalidates user's session token.                                                                       |
 | /me/list                    | GET    | {tokenHash}                   | Fetch saved list using the bearer token.                                                                |
