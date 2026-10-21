@@ -1,9 +1,12 @@
 const express = require('express');
 const limits = require('../src/middleware/rateLimit');
+const helmet = require('helmet');
 const { errorHandler, notFound } = require('../src/middleware/errorHandler');
 const app = express();
 
 app.set('trust proxy', 1);
+app.disable('x-powered-by');
+app.use(helmet());
 app.use(express.json({ limit: '50kb' }))
 app.use(limits.general);
 
