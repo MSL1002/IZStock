@@ -1,7 +1,9 @@
 const request = require('supertest');
 const app = require('../apps/private');
+const db = require('./helpers/testDb');
 
 describe('GET /health', () => {
+    db.seedStore();
     it('returns ok', async () => {
         const res = await request(app).get('/health');
         expect(res.status).toBe(200);
@@ -14,4 +16,5 @@ describe('GET /health', () => {
         expect(res.body.error).toBeDefined();
         expect(res.body.error.code).toBe('NOT_FOUND');
     });
+    db.resetDb();
 });

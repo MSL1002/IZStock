@@ -23,7 +23,13 @@ exports.replaceList = db.transaction((userID, entries) => {
 
     const row = db.prepare('SELECT id FROM lists WHERE user_id = ?').get(userID);
     const listID = row ? row.id : db.prepare('INSERT INTO lists (user_id) VALUES (?)').run(userID);
-    db.prepare('DELETE FROM list_items WHERE list_id = ?').run(listID);
+    try{
+        db.prepare('DELETE FROM list_items WHERE list_id = ?').run(listID);
+    }
+    catch {
+        listID = listID.lastInsertRowid;
+    }
+    
 
     const insert = db.prepare('INSERT INTO list_items (list_id, sku, quantity) VALUES (?, ?, ?)');
     entries.forEach((e) => {

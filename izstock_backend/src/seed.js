@@ -1,10 +1,9 @@
-// src/seed.js
 const crypto = require('crypto');
 const db = require('./db');
 
 const STORE_ID = 'store-1';
 const VERSION = 1;
-const MANAGER_CODE = 'MANAGER1';   // demo code, 8 chars per your API contract
+const MANAGER_CODE = 'MANAGER1';
 
 // salt:hash using Node's built-in scrypt (no extra dependency).
 // authService must verify codes using this same format.
@@ -150,7 +149,7 @@ for (const row of items) insItem.run(...row);
 // Test user with a saved list (for testing list persistence, req 6)
 const userId = db.prepare(
     'INSERT INTO users (email, first_name, last_name) VALUES (?, ?, ?)')
-    .run('8mrl1002@gmail.com', 'Test', 'User').lastInsertRowid;
+    .run('example@email.org', 'Test', 'User').lastInsertRowid;
 const listId = db.prepare('INSERT INTO lists (user_id) VALUES (?)')
     .run(userId).lastInsertRowid;
 const insListItem = db.prepare(
