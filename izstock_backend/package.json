@@ -17,6 +17,10 @@
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "jest" :{
+    "setupFiles": ["<rootDir>/tests/helpers/setupEnv.js"],
+    "testEnvironment": "node"
+  },
   "dependencies": {
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",

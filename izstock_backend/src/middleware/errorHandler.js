@@ -1,5 +1,5 @@
 exports.notFound = (req, res) => {
-    res.status(404).json({ error: `Route not found: ${req.method} ${req.originalUrl}`});
+    res.status(404).json({ error: {code: 'NOT_FOUND', message: `Route not found: ${req.method} ${req.originalUrl}`} });
 }
 
 exports.errorHandler = (err, req, res, next) => {
