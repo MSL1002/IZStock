@@ -5,7 +5,6 @@ const codeModel = require('../models/verificationCodeModel');
 const sessionModel = require('../models/sessionModel');
 const Email = require('./emailService');
 const validator = require('email-validator')
-const { log } = require('console');
 
 const CODE_TTL_MS = 5 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
@@ -42,7 +41,7 @@ function cleanName(value, field) {
   return s;
 }
 
-async function issueCode(userId, email, purpose) {
+async function issueCode(userId, email, fName, lName, purpose) {
   const code = String(crypto.randomInt(0, 1_000_000)).padStart(6, '0');
   codeModel.createReplacing({
     userId,
@@ -51,7 +50,7 @@ async function issueCode(userId, email, purpose) {
     expiresAt: new Date(Date.now() + CODE_TTL_MS).toISOString(),
   });
   try{
-    await Email.sendCode(email, code);
+    await Email.sendCode(email, fName, lName, code, purpose);
   }
   catch(e){
     console.log('failed on sendCode: ' + e);
@@ -65,11 +64,8 @@ exports.register = async (body) => {
   checkBody(body, ['email', 'firstName', 'lastName']);
 
   const email = checkEmail(body.email);
-  console.log('email ' + email)
   const firstName = cleanName(body.firstName, 'firstName');
-  console.log('fname ' + firstName)
   const lastName = cleanName(body.lastName, 'lastName');
-  console.log('lname ' + lastName)
 
   const existing = userModel.findByEmail(email);
   if (existing?.verified) {
@@ -85,7 +81,7 @@ exports.register = async (body) => {
     userId = userModel.create({ email, firstName, lastName });
   }
   try{
-    await issueCode(userId, email, 'registration');
+    await issueCode(userId, email, firstName, lastName, 'registration');
   }
   catch (e){
     console.log('IssueCode failed: ' + e);
@@ -103,7 +99,7 @@ exports.login = async (body) => {
   if(!user || !user.verified) {
       throw new AppError(404, 'USER_NOT_FOUND', 'No verified account found for this email');
   }
-  await issueCode(user.id, email, 'sign_in');
+  await issueCode(user.id, email, user.first_name, user.last_name, 'sign_in');
 }
 
 exports.verify = (body) => {
@@ -112,9 +108,7 @@ exports.verify = (body) => {
     if (typeof body.code !== 'string' || !/^\d{6}$/.test(body.code)) {
         throw invalid('code', 'Code must be a 6-digit string');
     }
-    console.log(email);
     const user = userModel.findByEmail(email);
-    console.log(user)
     const record = user && codeModel.findActive(user.id);
     if (!record) {
         throw new AppError(404, 'INVALID_CODE', 'Incorrect or expired code');
