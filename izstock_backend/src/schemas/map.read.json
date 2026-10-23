@@ -6,7 +6,7 @@
   "properties": {
     "storeId": { "type": "string" },
     "version": { "type": "integer" },
-    "units": { "type": "string", "enum": ["meters", "feet"], "default": "meters" },
+    "units": { "type": "string", "enum": ["meters", "feet"], "default": "feet" },
     "sections": {
       "type": "array",
       "items": { "$ref": "#/definitions/section" }

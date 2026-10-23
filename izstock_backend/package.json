@@ -5,9 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
+    "start": "cross-env NODE_ENV=production node src/server.js",
+    "dev": "cross-env NODE_ENV=development nodemon src/server.js",
     "db:seed": "node src/seed.js",
+    "db:seed_manager": "node src/seedManager.js MANAGER1",
     "db:init": "node src/initDb.js",
     "db:setup": "npm run db:reset && npm run db:seed",
     "db:reset": "node -e \"require('fs').rmSync('data/izstock.db',{force:true});require('fs').rmSync('data/izstock.db-wal',{force:true});require('fs').rmSync('data/izstock.db-shm',{force:true})\" && npm run db:init"
@@ -16,19 +17,28 @@
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "jest" :{
+    "setupFiles": ["<rootDir>/tests/helpers/setupEnv.js"],
+    "testEnvironment": "node"
+  },
   "dependencies": {
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
     "better-sqlite3": "^13.0.3",
     "cors": "^2.8.6",
-    "dotenv": "^18.0.5",
+    "dotenv": "^18.0.8",
+    "email-validator": "^2.0.4",
     "express": "^5.2.1",
-    "express-rate-limit": "^8.7.0",
+    "express-rate-limit": "^8.7.1",
+    "form-data": "^4.0.6",
     "helmet": "^8.3.0",
+    "mailgun.js": "^14.1.0",
     "morgan": "^1.12.1",
     "sequelize": "^6.37.8",
-    "sqlite3": "^6.0.1",
-    "twilio": "^6.1.2"
+    "sqlite3": "^6.0.1"
   },
   "devDependencies": {
+    "cross-env": "^10.1.0",
     "jest": "^30.5.2",
     "nodemon": "^3.1.14",
     "supertest": "^7.3.1"

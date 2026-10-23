@@ -55,18 +55,27 @@ CREATE INDEX IF NOT EXISTS idx_items_shelf ON items (shelf_id);
 
 CREATE TABLE IF NOT EXISTS users (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
-    phone_number  TEXT NOT NULL UNIQUE,
+    email         TEXT NOT NULL UNIQUE,
     first_name    TEXT NOT NULL,
-    last_name     TEXT NOT NULL
+    last_name     TEXT NOT NULL,
+    verified      INTEGER NOT NULL DEFAULT 0 CHECK (verified IN (0, 1))
 );
 
 CREATE TABLE IF NOT EXISTS confirmation_codes (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id     INTEGER NOT NULL REFERENCES users(id),
-    code        TEXT NOT NULL,
+    code_hash   TEXT NOT NULL,
     purpose     TEXT NOT NULL CHECK (purpose IN ('registration', 'sign_in')),
     expires_at  TEXT NOT NULL,
+    attempts    INTEGER NOT NULL DEFAULT 0,
     used        INTEGER NOT NULL DEFAULT 0 CHECK (used IN (0, 1))
+);
+
+CREATE TABLE IF NOT EXISTS sessions (
+    token_hash  TEXT PRIMARY KEY,
+    user_id     INTEGER NOT NULL REFERENCES users(id),
+    expires_at  TEXT NOT NULL,
+    created_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS lists (
@@ -81,6 +90,8 @@ CREATE TABLE IF NOT EXISTS list_items (
     quantity    INTEGER NOT NULL DEFAULT 1 CHECK (quantity >= 1),
     UNIQUE (list_id, sku)
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_lists_user ON lists (user_id);
 
 CREATE TABLE IF NOT EXISTS crud_log (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -1,18 +1,20 @@
 const request = require('supertest');
-const app = require('../src/app');
+const app = require('../apps/private');
+const db = require('./helpers/testDb');
 
-describe('GET /api/health', () => {
-    it('returns ok', async () =>{
-        const res = await request(app).get('/api/health');
+describe('GET /health', () => {
+    db.seedStore();
+    it('returns ok', async () => {
+        const res = await request(app).get('/health');
         expect(res.status).toBe(200);
         expect(res.body.status).toBe('ok');
     });
 
-    it('returns 404 for unknown routes', async() => {
-        const res = await request(app).get('/api/thiswillfail');
+    it('returns 404 with the error envelope for unknown routes', async () => {
+        const res = await request(app).get('/thiswillfail');
         expect(res.status).toBe(404);
         expect(res.body.error).toBeDefined();
+        expect(res.body.error.code).toBe('NOT_FOUND');
     });
-
-    afterAll(() => require('../src/db'.close()));
+    db.resetDb();
 });
