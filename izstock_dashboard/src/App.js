@@ -1,25 +1,34 @@
-import logo from './logo.svg';
-import './App.css';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { ManagerProvider } from './context/ManagerContext';
+import RequireManager from './features/manager/RequireManager';
+import MapEditorPage from './features/map-editor/MapEditorPage';
+import { sampleMap } from './features/map-editor/sampleMap';
 
-function App() {
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <div className="p-4">Dashboard home (placeholder)</div>,
+  },
+  {
+    path: '/map-editor',
+    element: (
+      <RequireManager>
+        <MapEditorPage />
+      </RequireManager>
+    ),
+  },
+  { 
+    path: '/map-editor-sample',
+    element: 
+      <MapEditorPage sampleMap={sampleMap} />
+  },
+]);
+
+export default function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <ManagerProvider>
+      <RouterProvider router={router} />
+    </ManagerProvider>
   );
 }
-
-export default App;
