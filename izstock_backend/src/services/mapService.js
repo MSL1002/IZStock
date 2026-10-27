@@ -40,7 +40,7 @@ exports.getEditor = () => {
     return {
         storeId: store.store_id,
         status: 'published',
-        baseVersion: store.current_version,
+        version: store.version,
         units: mapModel.getUnits(store.store_id, store.current_version),
         sections: mapModel.loadSections(store.store_id, { includeSkus: true }),
     };
@@ -96,9 +96,6 @@ exports.save = (body, role) => {
         if (!store) throw new AppError(404, 'NOT_FOUND', 'Store not found');
         if (body.storeId !== store.store_id) throw bad('storeId', 'storeId does not match this store');
 
-        console.log(body);
-        console.log(store)
-
         if (body.baseVersion !== store.version) {
             throw new AppError(409, 'STALE_VERSION', 'The map changed since you loaded it',
                 [{ field: 'baseVersion', message: `Server is at version ${store.version}` }]);
@@ -119,8 +116,7 @@ exports.save = (body, role) => {
             throw new AppError(422, 'SHELVES_IN_USE', 'Map would remove shelves that still have items',
                 [...stranded].map((id) => ({ field: 'shelves', message: `Shelf ${id} still has items` })));
         }
-
-        const version = store.current_version + 1;
+        const version = store.version + 1;
         mapModel.apply({ storeId: store.store_id, version, payload: body, skuToShelf });
 
         logModel.write({

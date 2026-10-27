@@ -12,7 +12,7 @@ app.use(lanOnly);
 app.use(helmet());
 app.use(cors({
   origin: (origin, cb) =>
-    !origin || dashboardOrigins.includes(origin) ? cb(null, true) : cb(new Error('CORS blocked')),
+    !origin || !config.dashboardOrigins.includes(origin) ? cb(null, true) : cb(new Error('CORS blocked')),
   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Manager-Token'],
 }));

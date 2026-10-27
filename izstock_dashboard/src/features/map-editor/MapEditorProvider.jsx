@@ -17,10 +17,10 @@ const DispatchContext = createContext(null);
 
 // Server codes that mean "your map is invalid", shown as highlights
 const MAP_VALIDATION_CODES = new Set([
-'VALIDATION_FAILED', 'DUPLICATE_AISLE_NUMBER', 'SHELVES_IN_USE',
+    'VALIDATION_FAILED', 'DUPLICATE_AISLE_NUMBER', 'SHELVES_IN_USE',
 ]);
 
-export function MapEditorProvider({ storeId, sampleMap=null, children }) {
+export function MapEditorProvider({ storeId, sampleMap = null, children }) {
     const { token, editedBy } = useManager();
     const [state, dispatch] = useReducer(mapEditorReducer, initState);
 
@@ -53,7 +53,7 @@ export function MapEditorProvider({ storeId, sampleMap=null, children }) {
 
     const load = useCallback(async () => {
         const id = ++loadId.current;
-        if(sampleMap) {
+        if (sampleMap) {
             dispatch({
                 type: 'LOAD_MAP', storeId, version: 0, units: sampleMap.units,
                 map: normalize(sampleMap), shelfItemCounts: sampleItemCounts,
@@ -67,29 +67,29 @@ export function MapEditorProvider({ storeId, sampleMap=null, children }) {
         setSaveError(null);
         setServerIssues(null);
         try {
-        const m = await getMap(tokenRef.current);
-        if (id !== loadId.current) return; // a newer load superseded this one
-        dispatch({
-            type: 'LOAD_MAP',
-            storeId,
-            version: m.version,
-            units: m.units,
-            map: normalize(m),
-            shelfItemCounts: m.shelfItemCounts,
-        });
-        setStatus('ready');
-        } catch (err) {
-        if (id !== loadId.current) return;
-        if (err.code === 'NOT_FOUND') {
-            // First-time setup: blank canvas at version 0
-            dispatch({ type: 'LOAD_MAP', storeId, version: 0, map: emptyMap, shelfItemCounts: {} });
+            const m = await getMap(tokenRef.current);
+            if (id !== loadId.current) return; // a newer load superseded this one
+            dispatch({
+                type: 'LOAD_MAP',
+                storeId,
+                version: m.version,
+                units: m.units,
+                map: normalize(m),
+                shelfItemCounts: m.shelfItemCounts,
+            });
             setStatus('ready');
-        } else if (err.code === 'FORBIDDEN') {
-            setStatus('locked');
-        } else {
-            setLoadError(err);
-            setStatus('error');
-        }
+        } catch (err) {
+            if (id !== loadId.current) return;
+            if (err.code === 'NOT_FOUND') {
+                // First-time setup: blank canvas at version 0
+                dispatch({ type: 'LOAD_MAP', storeId, version: 0, map: emptyMap, shelfItemCounts: {} });
+                setStatus('ready');
+            } else if (err.code === 'FORBIDDEN') {
+                setStatus('locked');
+            } else {
+                setLoadError(err);
+                setStatus('error');
+            }
         }
     }, [storeId, sampleMap]);
 
@@ -140,33 +140,35 @@ export function MapEditorProvider({ storeId, sampleMap=null, children }) {
 
         const snapshot = state.map; // exactly what we send, and what MARK_SAVED records
         try {
-        const res = await putMap(
-            {
-            storeId: state.storeId,
-            editedBy,
-            editedAt: new Date().toISOString(),
-            baseVersion: state.baseVersion,
-            units: state.units,
-            sections: denormalize(snapshot),
-            },
-            tokenRef.current
-        );
-        dispatch({ type: 'MARK_SAVED', version: res.version, map: snapshot });
-        return { ok: true };
+            const res = await putMap(
+                {
+                    storeId: state.storeId,
+                    editedBy: "manager",
+                    version: (state.baseVersion) + 1,
+                    editedAt: new Date().toISOString(),
+                    baseVersion: state.baseVersion,
+                    units: state.units,
+                    sections: denormalize(snapshot),
+                    status: "published"
+                },
+                tokenRef.current
+            );
+            dispatch({ type: 'MARK_SAVED', version: res.version, map: snapshot });
+            return { ok: true };
         } catch (err) {
-        if (err.code === 'STALE_VERSION') {
-            setConflict(true);
-        } else if (err.code === 'FORBIDDEN') {
-            setNeedsUnlock(true); // keep edits; the UI shows UnlockModal, then the user saves again
-        } else if (MAP_VALIDATION_CODES.has(err.code)) {
-            setServerIssues({ forMap: snapshot, issues: issuesFromServerError(err) });
-        } else {
-            setSaveError({ code: err.code ?? 'NETWORK', message: err.message });
-        }
-        return { ok: false, error: err };
+            if (err.code === 'STALE_VERSION') {
+                setConflict(true);
+            } else if (err.code === 'FORBIDDEN') {
+                setNeedsUnlock(true); // keep edits; the UI shows UnlockModal, then the user saves again
+            } else if (MAP_VALIDATION_CODES.has(err.code)) {
+                setServerIssues({ forMap: snapshot, issues: issuesFromServerError(err) });
+            } else {
+                setSaveError({ code: err.code ?? 'NETWORK', message: err.message });
+            }
+            return { ok: false, error: err };
         } finally {
-        savingRef.current = false;
-        setSaving(false);
+            savingRef.current = false;
+            setSaving(false);
         }
     }, [canSave, state.map, state.storeId, state.baseVersion, state.units, editedBy]);
 
@@ -176,21 +178,21 @@ export function MapEditorProvider({ storeId, sampleMap=null, children }) {
     const actions = useMemo(() => {
         const guarded = (action) => { if (!readOnly) dispatch(action); };
         return {
-        setTool: (tool) => dispatch({ type: 'SET_TOOL', tool }), // UI state, always allowed
-        select: (selection) => dispatch({ type: 'SELECT', selection }),
-        addEntity: (entityType, entity) => guarded({ type: 'ADD_ENTITY', entityType, entity }),
-        moveEntity: (entityType, id, dx, dy, newParentId) =>
-            guarded({ type: 'MOVE_ENTITY', entityType, id, dx, dy, newParentId }),
-        setPolygon: (entityType, id, polygon) =>
-            guarded({ type: 'SET_POLYGON', entityType, id, polygon }),
-        updateEntity: (entityType, id, patch) =>
-            guarded({
-            type: 'UPDATE_ENTITY', entityType, id, patch,
-            coalesceKey: `${entityType}:${id}:${Object.keys(patch).join(',')}`,
-            }),
-        deleteEntity: (entityType, id) => guarded({ type: 'DELETE_ENTITY', entityType, id }),
-        undo: () => guarded({ type: 'UNDO' }),
-        redo: () => guarded({ type: 'REDO' }),
+            setTool: (tool) => dispatch({ type: 'SET_TOOL', tool }), // UI state, always allowed
+            select: (selection) => dispatch({ type: 'SELECT', selection }),
+            addEntity: (entityType, entity) => guarded({ type: 'ADD_ENTITY', entityType, entity }),
+            moveEntity: (entityType, id, dx, dy, newParentId) =>
+                guarded({ type: 'MOVE_ENTITY', entityType, id, dx, dy, newParentId }),
+            setPolygon: (entityType, id, polygon) =>
+                guarded({ type: 'SET_POLYGON', entityType, id, polygon }),
+            updateEntity: (entityType, id, patch) =>
+                guarded({
+                    type: 'UPDATE_ENTITY', entityType, id, patch,
+                    coalesceKey: `${entityType}:${id}:${Object.keys(patch).join(',')}`,
+                }),
+            deleteEntity: (entityType, id) => guarded({ type: 'DELETE_ENTITY', entityType, id }),
+            undo: () => guarded({ type: 'UNDO' }),
+            redo: () => guarded({ type: 'REDO' }),
         };
     }, [readOnly]);
 
@@ -198,8 +200,8 @@ export function MapEditorProvider({ storeId, sampleMap=null, children }) {
     // The UI uses this to warn BEFORE dispatching DELETE_ENTITY.
     const itemsAffectedBy = useCallback(
         (entityType, id) => {
-        const { shelves } = collectGroup(state.map, entityType, id);
-        return shelves.reduce((sum, sid) => sum + (state.shelfItemCounts[sid] ?? 0), 0);
+            const { shelves } = collectGroup(state.map, entityType, id);
+            return shelves.reduce((sum, sid) => sum + (state.shelfItemCounts[sid] ?? 0), 0);
         },
         [state.map, state.shelfItemCounts]
     );
@@ -208,35 +210,35 @@ export function MapEditorProvider({ storeId, sampleMap=null, children }) {
 
     const value = useMemo(
         () => ({
-        state,
-        status, loadError, reload: load,
-        dirty, issues, issueIndex, canSave, readOnly,
-        canUndo: canUndo(state), canRedo: canRedo(state),
-        saving, save, saveError, conflict, needsUnlock,
-        actions, itemsAffectedBy,
-        focusRequest, requestFocus
+            state,
+            status, loadError, reload: load,
+            dirty, issues, issueIndex, canSave, readOnly,
+            canUndo: canUndo(state), canRedo: canRedo(state),
+            saving, save, saveError, conflict, needsUnlock,
+            actions, itemsAffectedBy,
+            focusRequest, requestFocus
         }),
         [state, status, loadError, load, dirty, issues, issueIndex, canSave, readOnly,
-        saving, save, saveError, conflict, needsUnlock, actions, itemsAffectedBy,
-        focusRequest, requestFocus, dismissUnlock]
+            saving, save, saveError, conflict, needsUnlock, actions, itemsAffectedBy,
+            focusRequest, requestFocus, dismissUnlock]
     );
 
     return (
         <DispatchContext.Provider value={dispatch}>
-        <StateContext.Provider value={value}>{children}</StateContext.Provider>
+            <StateContext.Provider value={value}>{children}</StateContext.Provider>
         </DispatchContext.Provider>
     );
 }
 
 export function useMapEditor() {
-  const ctx = useContext(StateContext);
-  if (!ctx) throw new Error('useMapEditor must be used inside <MapEditorProvider>');
-  return ctx;
+    const ctx = useContext(StateContext);
+    if (!ctx) throw new Error('useMapEditor must be used inside <MapEditorProvider>');
+    return ctx;
 }
 
 // Raw dispatch, for hooks that need it without subscribing to every state change.
 export function useMapEditorDispatch() {
-  const ctx = useContext(DispatchContext);
-  if (!ctx) throw new Error('useMapEditorDispatch must be used inside <MapEditorProvider>');
-  return ctx;
+    const ctx = useContext(DispatchContext);
+    if (!ctx) throw new Error('useMapEditorDispatch must be used inside <MapEditorProvider>');
+    return ctx;
 }
