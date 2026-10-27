@@ -69,6 +69,20 @@ export function transformedRectToPolygon(node, pxPerUnit = DEFAULT_PX_PER_UNIT, 
   return rectToPolygon([x, y], [x + w, y + h], step);
 }
 
+// A Rect node (after a Transformer resize) -> snapped 4-point polygon, or null if degenerate.
+// The Transformer changes scaleX/scaleY, not width/height, so bake the scale in here.
+export function rectNodeToPolygon(node, pxPerUnit = DEFAULT_PX_PER_UNIT, step = DEFAULT_SNAP) {
+  const x1 = node.x();
+  const y1 = node.y();
+  const x2 = x1 + node.width() * node.scaleX();
+  const y2 = y1 + node.height() * node.scaleY();
+  return rectToPolygon(
+    snapPoint(toUnits([x1, y1], pxPerUnit), step),
+    snapPoint(toUnits([x2, y2], pxPerUnit), step),
+    step
+  );
+}
+
 // ---- zoom ----
 
 // Zoom keeping the point under the cursor fixed. Returns the Stage's new scale

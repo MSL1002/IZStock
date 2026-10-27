@@ -180,6 +180,7 @@ export function mapEditorReducer (state, action){
             const { entityType, id, polygon } = action;
             const key = COLLECTION[entityType];
             const entity = state.map[key][id];
+            if (JSON.stringify(entity.polygon) === JSON.stringify(polygon)) return state;
             if (!entity || !validPolygon(polygon)) return state;
             const map = { ...state.map, [key]: { ...state.map[key], [id]: { ...entity, polygon } } };
             return commit(state, map);

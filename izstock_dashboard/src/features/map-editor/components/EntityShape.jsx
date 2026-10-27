@@ -1,4 +1,3 @@
-// features/map-editor/components/EntityShape.jsx
 import { memo, useMemo } from 'react';
 import { Group, Line, Text } from 'react-konva';
 import { DEFAULT_PX_PER_UNIT as PX, dragDeltaToUnits, toPx } from '../utils/coords';
@@ -26,7 +25,7 @@ function look(type, entity, itemCount) {
 
 function EntityShape({
   type, entity, selected, hasIssue, itemCount,
-  interactive, draggable, onSelect, onMoveEnd,
+  interactive, draggable, onSelect, onMoveEnd, onDragState,
 }) {
   const points = useMemo(() => toPx(entity.polygon), [entity.polygon]);
   const box = useMemo(() => bounds(entity.polygon), [entity.polygon]);
@@ -43,9 +42,10 @@ function EntityShape({
 
   const handleDragEnd = (e) => {
     e.cancelBubble = true;
-    const node = e.target;                     // the Group
+    const node = e.target;
     const { dx, dy } = dragDeltaToUnits(node);
-    node.position({ x: 0, y: 0 });             // the reducer now owns the position
+    node.position({ x: 0, y: 0 });
+    onDragState?.(false);
     onMoveEnd(type, entity.id, dx, dy);
   };
 
@@ -55,7 +55,7 @@ function EntityShape({
       draggable={draggable}
       onClick={handleSelect}
       onTap={handleSelect}
-      onDragStart={handleSelect}
+      onDragStart={(e) => { handleSelect(e); onDragState?.(true); }}
       onDragEnd={handleDragEnd}
     >
       <Line

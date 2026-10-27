@@ -1,21 +1,21 @@
-import { polygonContains, findOverlappingPairs, area, EPS } from "./geometry"
+import { polygonContains, findOverlappingPairs, area, isSimplePolygon, EPS } from './geometry';
 
 export const CODES = {
-    INVALID_SHAPE: 'INVALID_SHAPE',                    // client only
-    OUTSIDE_PARENT: 'OUTSIDE_PARENT',                  // client only
-    OVERLAP: 'OVERLAP',                                // client only
-    MISSING_LABEL: 'MISSING_LABEL',                    // client only
-    DUPLICATE_AISLE_NUMBER: 'DUPLICATE_AISLE_NUMBER',  // mirrors server 422
-    SHELVES_IN_USE: 'SHELVES_IN_USE',                  // mirrors server 422
+  INVALID_SHAPE: 'INVALID_SHAPE',                    // client only
+  OUTSIDE_PARENT: 'OUTSIDE_PARENT',                  // client only
+  OVERLAP: 'OVERLAP',                                // client only
+  MISSING_LABEL: 'MISSING_LABEL',                    // client only
+  DUPLICATE_AISLE_NUMBER: 'DUPLICATE_AISLE_NUMBER',  // mirrors server 422
+  SHELVES_IN_USE: 'SHELVES_IN_USE',                  // mirrors server 422
 }
 
 const normNumber = (n) => String(n ?? '').trim().toLowerCase();
 
-function groupBy(list, key){
-    return list.reduce((acc, item) => {
-        (acc[item[key]] ??= []).push(item);
-        return acc;
-    }, {});
+function groupBy(list, key) {
+  return list.reduce((acc, item) => {
+    (acc[item[key]] ??= []).push(item);
+    return acc;
+  }, {});
 }
 
 // pure: normalized map in, array of issues out. An empty array means "safe to save".
@@ -31,10 +31,14 @@ export function validateMap(map, { shelfItemCounts = {} } = {}) {
   const shelves = Object.values(map.shelves);
   const label = (a) => `Aisle ${String(a.aisleNumber).trim() || '(no number)'}`;
 
-  // 1. shapes must have real area
+  /* 1. Shapes must have real area and non-crossing edges */
   for (const [type, list] of [['section', sections], ['aisle', aisles], ['shelf', shelves]]) {
     for (const e of list) {
-      if (area(e.polygon) < EPS) add(CODES.INVALID_SHAPE, type, [e.id], `A ${type} has no area.`);
+      if (area(e.polygon) < EPS) {
+        add(CODES.INVALID_SHAPE, type, [e.id], `A ${type} has no area.`);
+      } else if (!isSimplePolygon(e.polygon)) {
+        add(CODES.INVALID_SHAPE, type, [e.id], `A ${type} has edges that cross each other. Drag a corner back.`);
+      }
     }
   }
 

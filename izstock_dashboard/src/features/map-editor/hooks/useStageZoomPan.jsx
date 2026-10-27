@@ -3,6 +3,7 @@ import { DEFAULT_PX_PER_UNIT as PX, MIN_ZOOM, MAX_ZOOM, zoomAtPointer } from '..
 
 const MARGIN = 48;      // px of breathing room around fitted content
 const MAX_FIT_ZOOM = 2; // don't blow a tiny map up to fill the screen
+const MIN_FOCUS_ZOOM = .8;
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
 export function useStageZoomPan() {
@@ -57,5 +58,22 @@ export function useStageZoomPan() {
     });
   }, [apply]);
 
-  return { stageRef, scale, onWheel, zoomBy, fit };
+  const focusOn = useCallback((box, size, padding=3) => {
+    const stage = stageRef.current;
+    if(!stage || !box || size.width === 0 || size.height === 0) return;
+
+    const bw = Math.max((box.maxX - box.minX + 2 * padding) * PX, 1);
+    const bh = Math.max((box.maxY - box.minY + 2 * padding) * PX, 1);
+    const fitScale = Math.min(size.width / bw, size.height / bh);
+    const s = clamp(Math.min(Math.max(stage.scaleX(), MIN_FOCUS_ZOOM), fitScale), MIN_ZOOM, MAX_ZOOM);
+
+    const cx = ((box.minX + box.maxX) / 2) * PX;
+    const cy = ((box.minY + box.maxY) / 2) * PX;
+    apply({
+      scale: s,
+      position: { x: size.width / 2 - cx * s, y: size.height / 2 - cy * s },
+    }); 
+  }, [apply]);
+
+  return { stageRef, scale, onWheel, zoomBy, fit, focusOn };
 }

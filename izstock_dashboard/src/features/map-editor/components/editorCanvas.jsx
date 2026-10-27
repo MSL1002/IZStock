@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Stage, Layer } from 'react-konva';
 import { Button, ButtonGroup } from 'react-bootstrap';
 import { useMapEditor } from '../MapEditorProvider';
@@ -7,6 +7,9 @@ import { useStageZoomPan } from '../hooks/useStageZoomPan';
 import { bounds, findContainer } from '../utils/geometry';
 import GridLayer from './GridLayer';
 import EntityShape from './EntityShape';
+import DraftLayer from './DraftLayer';
+import { TOOL_HINTS } from '../tools';
+import HandlesLayer from './HandlesLayers';
 
 const KEY = { section: 'sections', aisle: 'aisles', shelf: 'shelves' };
 const PARENT = { shelf: { field: 'aisleId', pool: 'aisles' }, aisle: { field: 'sectionId', pool: 'sections' } };
@@ -20,12 +23,16 @@ function contentBounds(map) {
 }
 
 export default function EditorCanvas() {
-  const { state, status, actions, issueIndex, readOnly } = useMapEditor();
+  const { state, status, actions, issueIndex, readOnly, focusRequest } = useMapEditor();
   const { map, selection, tool, shelfItemCounts } = state;
+  const [notice, setNotice] = useState(null);
+  const showNotice = useCallback((text) => setNotice({ text, at: Date.now() }), []);
+  const [moving, setMoving] = useState(false);
+  const selected = selection ? map[KEY[selection.type]][selection.id] : null;
 
   const containerRef = useRef(null);
   const size = useElementSize(containerRef);
-  const { stageRef, scale, onWheel, zoomBy, fit } = useStageZoomPan();
+  const { stageRef, scale, onWheel, zoomBy, fit, focusOn } = useStageZoomPan();
 
   // Latest map for event handlers, without making the handlers change identity
   const mapRef = useRef(map);
@@ -42,6 +49,12 @@ export default function EditorCanvas() {
     w: Math.max(60, Math.ceil((content?.maxX ?? 0) + 10)),
     h: Math.max(40, Math.ceil((content?.maxY ?? 0) + 10)),
   }), [content]);
+
+  useEffect(() => {
+    if (!notice) return undefined;
+    const id = setTimeout(() => setNotice(null), 3500);
+    return () => clearTimeout(id);
+  }, [notice]);
 
   /* ---------- fit once per load ---------- */
 
@@ -60,6 +73,15 @@ export default function EditorCanvas() {
     (type, id) => actions.select({ type, id }),
     [actions]
   );
+
+  const handledFocus = useRef(focusRequest?.n ?? 0);
+  useEffect(() => {
+    if (!focusRequest || focusRequest.n === handledFocus.current) return;
+    if (status !== 'ready' || size.width === 0 || size.height === 0) return; // retried when these change
+    handledFocus.current = focusRequest.n;
+    const entity = mapRef.current[KEY[focusRequest.type]][focusRequest.id];
+    if (entity) focusOn(bounds(entity.polygon), size);
+  }, [focusRequest, status, size, focusOn]);
 
   // After a drag: if a shelf/aisle now sits inside a different parent, reparent it.
   // If it's inside none, leave the parent alone: validation will flag OUTSIDE_PARENT.
@@ -127,11 +149,18 @@ export default function EditorCanvas() {
             {renderShapes('aisle', aisles)}
             {renderShapes('shelf', shelves)}
           </Layer>
-          {/* DraftLayer (in-progress drawing, via useDrawTool) goes here */}
+          <HandlesLayer 
+            type={selection?.type}
+            entity={selected}
+            enabled={interactive && !readOnly && !moving}
+            scale={scale}
+            onPolygon={actions.setPolygon}
+          />
+          <DraftLayer scale={scale} onNotice={showNotice}/>
         </Stage>
       )}
 
-      <div className="position-absolute top-0 end-0 m-2 d-flex align-items-center gap-2">
+      <div className="position-absolute top-0 end-0 m-2 d-flex align-items-left gap-2">
         <span className="badge text-bg-light border">{Math.round(scale * 100)}%</span>
         <ButtonGroup size="sm">
           <Button variant="light" aria-label="Zoom out" onClick={() => zoomBy(1 / 1.25)}>−</Button>
@@ -139,6 +168,16 @@ export default function EditorCanvas() {
           <Button variant="light" onClick={() => fit(content, size)}>Fit</Button>
         </ButtonGroup>
       </div>
+
+      {!interactive && (
+        <div
+          className="position-absolute bottom-0 start-0 m-2 px-2 py-1 small bg-white border rounded shadow-sm"
+          style={{ pointerEvents: 'none', maxWidth: 440 }}
+        >
+          {notice ? <span className="text-danger">{notice.text}</span> : TOOL_HINTS[tool]}
+        </div>
+      )}
+
     </div>
   );
 }

@@ -2,25 +2,25 @@ export const EPS = 1e-9;
 
 // ---- basics ----
 
-export function bounds (polygon) {
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    for (const [x, y] of polygon){
-        if (x < minX) minX = x;
-        if (y < minY) minY = y;
-        if (x > maxX) maxX = x;
-        if (y > maxY) maxY = y;
-    }
-    return { minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY};
+export function bounds(polygon) {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const [x, y] of polygon) {
+    if (x < minX) minX = x;
+    if (y < minY) minY = y;
+    if (x > maxX) maxX = x;
+    if (y > maxY) maxY = y;
+  }
+  return { minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY };
 }
 
-export function signedArea(polygon){
-    let sum = 0;
-    for ( let i = 0; i < polygon.length; i++){
-        const [x0, y0] = polygon[i];
-        const [x1, y1] = polygon[(i + 1) % polygon.length];
-        sum += x0 * y1 - x1 * y0;
-    }
-    return sum / 2;
+export function signedArea(polygon) {
+  let sum = 0;
+  for (let i = 0; i < polygon.length; i++) {
+    const [x0, y0] = polygon[i];
+    const [x1, y1] = polygon[(i + 1) % polygon.length];
+    sum += x0 * y1 - x1 * y0;
+  }
+  return sum / 2;
 }
 
 export const area = (polygon) => Math.abs(signedArea(polygon));
@@ -104,14 +104,14 @@ function edgesProperlyCross(p, q) {
 
 const probes = (polygon) => [...polygon, ...edges(polygon).map(midpoint), centroid(polygon)];
 
-// ---- overlap and containment ----
+// ---- overlap / other errors ----
 
 // True when interiors overlap. Shapes that merely touch along an edge or at a
 // corner do NOT overlap, so adjacent aisles/shelves are allowed.
 export function polygonsOverlap(a, b) {
   const ba = bounds(a), bb = bounds(b);
   if (ba.maxX <= bb.minX + EPS || bb.maxX <= ba.minX + EPS ||
-      ba.maxY <= bb.minY + EPS || bb.maxY <= ba.minY + EPS) return false;
+    ba.maxY <= bb.minY + EPS || bb.maxY <= ba.minY + EPS) return false;
 
   // Two axis-aligned rects whose boxes overlap with positive area: done.
   if (isAxisAlignedRect(a) && isAxisAlignedRect(b)) return true;
@@ -129,6 +129,18 @@ export function polygonContains(outer, inner) {
   if (inner.some((p) => locatePoint(p, outer) === 'outside')) return false;
   if (edges(inner).some((e) => locatePoint(midpoint(e), outer) === 'outside')) return false;
   return !edgesProperlyCross(outer, inner);
+}
+
+// False when two non-adjacent edges cross (a bow-tie / figure-eight).
+export function isSimplePolygon(polygon) {
+  const es = edges(polygon);
+  for (let i = 0; i < es.length; i++) {
+    for (let j = i + 1; j < es.length; j++) {
+      const adjacent = j === i + 1 || (i === 0 && j === es.length - 1);
+      if (!adjacent && properCross(es[i][0], es[i][1], es[j][0], es[j][1])) return false;
+    }
+  }
+  return true;
 }
 
 // ---- finders used by tools and validation ----
@@ -156,7 +168,7 @@ export function findOverlappingPairs(items) {
     for (let j = i + 1; j < withBounds.length; j++) {
       const A = withBounds[i], B = withBounds[j];
       if (A.box.maxX <= B.box.minX || B.box.maxX <= A.box.minX ||
-          A.box.maxY <= B.box.minY || B.box.maxY <= A.box.minY) continue;
+        A.box.maxY <= B.box.minY || B.box.maxY <= A.box.minY) continue;
       if (polygonsOverlap(A.polygon, B.polygon)) pairs.push([A.id, B.id]);
     }
   }

@@ -32,6 +32,7 @@ export function MapEditorProvider({ storeId, sampleMap=null, children }) {
     const [conflict, setConflict] = useState(false);      // STALE_VERSION
     const [needsUnlock, setNeedsUnlock] = useState(false); // FORBIDDEN on save
     const [serverIssues, setServerIssues] = useState(null); // { forMap, issues }
+    const [focusRequest, setFocusRequest] = useState(null); // { type, id, n }
 
     // The token lives in a ref so a refreshed token never re-triggers a load,
     // which would throw away unsaved edits.
@@ -40,7 +41,15 @@ export function MapEditorProvider({ storeId, sampleMap=null, children }) {
     const savingRef = useRef(false);
     const loadId = useRef(0);
 
+    //
+    const requestFocus = useCallback(
+        (type, id) => setFocusRequest((r) => ({ type, id, n: (r?.n ?? 0) + 1 })),
+        []
+    );
+
     /* ---------- load ---------- */
+
+    const dismissUnlock = useCallback(() => setNeedsUnlock(false), []);
 
     const load = useCallback(async () => {
         const id = ++loadId.current;
@@ -205,9 +214,11 @@ export function MapEditorProvider({ storeId, sampleMap=null, children }) {
         canUndo: canUndo(state), canRedo: canRedo(state),
         saving, save, saveError, conflict, needsUnlock,
         actions, itemsAffectedBy,
+        focusRequest, requestFocus
         }),
         [state, status, loadError, load, dirty, issues, issueIndex, canSave, readOnly,
-        saving, save, saveError, conflict, needsUnlock, actions, itemsAffectedBy]
+        saving, save, saveError, conflict, needsUnlock, actions, itemsAffectedBy,
+        focusRequest, requestFocus, dismissUnlock]
     );
 
     return (
