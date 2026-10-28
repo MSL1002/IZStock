@@ -31,7 +31,7 @@ module.exports = {
     public_port: process.env.PUBLIC_PORT || 3000,
     private_port: process.env.PRIVATE_PORT || 4000,
     dbPath: process.env.DB_PATH,
-    dashboardOrigins: (process.env.DASHBOARD_ORIGIN || 'http://localhost:5173')
+    dashboardOrigins: (process.env.DASHBOARD_ORIGINS)
         .split(',')
         .map((s) => s.trim())
         .filter(Boolean),
