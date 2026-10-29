@@ -37,13 +37,16 @@ exports.getPublic = () => {
 
 exports.getEditor = () => {
     const store = requirePublished();
+    const shelfItemCounts = mapModel.shelfItemCount();
+    console.log(shelfItemCounts);
+    console.log(store);
     return {
         storeId: store.store_id,
         status: 'published',
         version: store.version,
-        units: mapModel.getUnits(store.store_id, store.current_version),
+        units: mapModel.getUnits(store.store_id, store.version),
         sections: mapModel.loadSections(store.store_id, { includeSkus: true }),
-        shelfItemCounts: mapModel.shelfItemCount()
+        shelfItemCounts,
     };
 };
 

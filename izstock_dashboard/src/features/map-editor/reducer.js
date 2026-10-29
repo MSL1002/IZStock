@@ -66,7 +66,7 @@ if (type === 'shelf') {
 //push old map into history, unless the edit coalexces with previous
 function commit(state, nextMap, {coalesceKey = null, ...extra } = {}){
     if (nextMap === state.map) return state;
-    const coalesce = coalesceKey !== null && coalesceKey == state.coalesceKey;
+    const coalesce = coalesceKey !== null && coalesceKey === state.coalesceKey;
     return {
         ...state,
         ...extra,
@@ -80,7 +80,7 @@ function commit(state, nextMap, {coalesceKey = null, ...extra } = {}){
 // after undo/redo/delete, drop a selection that no longer exists
 function pruneSelection(selection, map) {
     if(!selection) return null;
-    return map[COLLECTION[selection.type]] [selection.id] ? selection : null;
+    return map[COLLECTION[selection.type]][selection.id] ? selection : null;
 }
 
 // ---------- reducer ----------

@@ -105,8 +105,10 @@ exports.itemsBySku = () => {
 exports.itemShelves = () =>
     db.prepare('SELECT sku, shelf_id FROM items').all();
 
-exports.shelfItemCount = () =>
-    db.prepare('SELECT shelf_id, COUNT(*) FROM items GROUP BY shelf_id').all();
+exports.shelfItemCount = () => {
+    const rows = db.prepare('SELECT shelf_id, COUNT(*) AS n FROM items GROUP BY shelf_id').all();
+    return Object.fromEntries(rows.map((r) => [r.shelf_id, r.n]));
+}
 
 exports.apply = ({ storeId, version, payload, skuToShelf }) => {
     const upSection = db.prepare(`
