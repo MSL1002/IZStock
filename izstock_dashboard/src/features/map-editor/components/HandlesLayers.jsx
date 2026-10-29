@@ -202,6 +202,7 @@ function VertexHandles({ type, entity, scale, onPolygon }) {
                             const point = snapNode(e.target);
                             setPreview(null);
                             commit(withPoint(i, point));
+                            e.target.position({x, y});
                         }}
                         onDblClick={() => removeAt(i)} onDblTap={() => removeAt(i)}
                         onMouseEnter={(e) => setCursor(e, 'move')} onMouseLeave={(e) => setCursor(e, '')}

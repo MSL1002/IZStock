@@ -152,6 +152,36 @@ export function isSimplePolygon(polygon) {
   return true;
 }
 
+const same = (a, b) => Math.abs(a - b) < 1e-6;
+
+// Removes (1) stacked corners: a corner on top of its neighbor merges into one,
+// and (2) middle corners of 3+ consecutive corners sharing an x or a y.
+// Repeats until stable, since removing one corner can expose another.
+// Only CONSECUTIVE corners are touched, so an L-shape (whose non-adjacent corners
+// share an x or y) is never altered.
+export function cleanPolygon(polygon) {
+  const pts = polygon.map((p) => [...p]);
+  let changed = true;
+  while (changed && pts.length >= 3) {
+    changed = false;
+    for (let i = 0; i < pts.length && pts.length >= 3; i++) {
+      const prev = pts[(i - 1 + pts.length) % pts.length];
+      const cur = pts[i];
+      const next = pts[(i + 1) % pts.length];
+      const stacked = same(cur[0], next[0]) && same(cur[1], next[1]);
+      const flat =
+        (same(prev[0], cur[0]) && same(cur[0], next[0])) ||
+        (same(prev[1], cur[1]) && same(cur[1], next[1]));
+      if (stacked || flat) {
+        pts.splice(i, 1);
+        changed = true;
+        i--;
+      }
+    }
+  }
+  return pts;
+}
+
 // ---- finders used by tools and validation ----
 
 // Parent lookup for a newly drawn shape: the smallest candidate containing its

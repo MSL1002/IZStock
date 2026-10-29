@@ -1,4 +1,5 @@
 import { emptyMap } from "./normalize";
+import { cleanPolygon } from "./utils/geometry";
 
 const HISTORY_LIMIT = 100;
 const COLLECTION = {section: 'sections', aisle: 'aisles', shelf: 'shelves'};
@@ -116,18 +117,21 @@ export function mapEditorReducer (state, action){
         case 'ADD_ENTITY': {
             // action: {enrirtyType, entity } where entity includes its ID (and parent ID)
             const { entityType, entity } = action;
+            const polygon = validPolygon(entity.polygon) ? cleanPolygon(entity.polygon) : null;
+            if (!polygon || polygon.length < 3) return state;
+            const clean = { ...entity, polygon };
             const key = COLLECTION[entityType];
-            if(!entity?.id || state.map[key][entity.id]) return state;
-            if(!validPolygon(entity.polygon)) return state;
+            if(!clean?.id || state.map[key][clean.id]) return state;
+            if(!validPolygon(clean.polygon)) return state;
             
             const parentField = PARENT_FIELD[entityType];
             if (parentField) {
                 const parentKey = COLLECTION[PARENT_TYPE[entityType]];
-                if(!state.map[parentKey][entity[parentField]]) return state;
+                if(!state.map[parentKey][clean[parentField]]) return state;
             }
 
-            const map = { ...state.map, [key]: { ...state.map[key], [entity.id]: entity } };
-            return commit(state, map, { selection: {type: entityType, id: entity.id } });
+            const map = { ...state.map, [key]: { ...state.map[key], [clean.id]: clean } };
+            return commit(state, map, { selection: {type: entityType, id: clean.id } });
         }
 
         case 'MOVE_ENTITY': {
@@ -176,12 +180,15 @@ export function mapEditorReducer (state, action){
         }
 
         case 'SET_POLYGON': {
-            // action: { entityType, id, polygon }  (resize / vertex edit; children do NOT move)
-            const { entityType, id, polygon } = action;
+            const { entityType, id } = action;
             const key = COLLECTION[entityType];
             const entity = state.map[key][id];
+            if (!entity || !validPolygon(action.polygon)) return state;
+
+            const polygon = cleanPolygon(action.polygon);
+            if (polygon.length < 3) return state; // collapsed (e.g. a corner dropped onto a neighbor of a triangle)
             if (JSON.stringify(entity.polygon) === JSON.stringify(polygon)) return state;
-            if (!entity || !validPolygon(polygon)) return state;
+
             const map = { ...state.map, [key]: { ...state.map[key], [id]: { ...entity, polygon } } };
             return commit(state, map);
         }
