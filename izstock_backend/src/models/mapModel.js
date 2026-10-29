@@ -132,6 +132,9 @@ exports.apply = ({ storeId, version, payload, skuToShelf }) => {
 
     // Parents first so foreign keys resolve
     for (const s of payload.sections) {
+        // if it's the first version, there won't be anythign in the sections version, which breaks it
+        version ? version : version = 1;
+        console.log(version)
         upSection.run(s.id, storeId, version, s.name, JSON.stringify(s.polygon), s.color ?? null);
         keep.sections.add(s.id);
         for (const a of s.aisles) {

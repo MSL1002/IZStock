@@ -132,6 +132,7 @@ export function MapEditorProvider({ storeId, sampleMap = null, children }) {
     /* ---------- save ---------- */
 
     const save = useCallback(async () => {
+        const STOREID = import.meta.env.STORE_ID;
         if (savingRef.current || !canSave) return { ok: false };
         savingRef.current = true;
         setSaving(true);
@@ -139,15 +140,18 @@ export function MapEditorProvider({ storeId, sampleMap = null, children }) {
         setConflict(false);
 
         const snapshot = state.map; // exactly what we send, and what MARK_SAVED records
+
+        console.log(snapshot)
+        console.log(state)
         try {
             const res = await putMap(
                 {
-                    storeId: state.storeId,
+                    storeId: state.storeId ? state.storeId : STOREID,
                     editedBy: "manager",
-                    version: (state.baseVersion) + 1,
+                    version: state.baseVersion ? (state.baseVersion) + 1 : 1,
                     editedAt: new Date().toISOString(),
-                    baseVersion: state.baseVersion,
-                    units: state.units,
+                    baseVersion: state.baseVersion ? state.baseVersion : 0,
+                    units: state.units ? state.units : 'feet',
                     sections: denormalize(snapshot),
                     status: "published"
                 },

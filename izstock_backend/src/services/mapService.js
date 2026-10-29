@@ -98,13 +98,15 @@ exports.save = (body, role) => {
     const { shelfIds, skuToShelf } = checkStructure(body);
 
     db.transaction(() => {
-        const store = mapModel.getMap();
+        const store = mapModel.getStore();
         if (!store) throw new AppError(404, 'NOT_FOUND', 'Store not found');
         if (body.storeId !== store.store_id) throw bad('storeId', 'storeId does not match this store');
-
-        if (body.baseVersion !== store.version) {
-            throw new AppError(409, 'STALE_VERSION', 'The map changed since you loaded it',
-                [{ field: 'baseVersion', message: `Server is at version ${store.version}` }]);
+        
+        if(body.baseVersion){
+            if (body.baseVersion !== store.version) {
+                throw new AppError(409, 'STALE_VERSION', 'The map changed since you loaded it',
+                    [{ field: 'baseVersion', message: `Server is at version ${store.version}` }]);
+            }
         }
 
         const missing = itemModel.missingSkus([...skuToShelf.keys()]);
