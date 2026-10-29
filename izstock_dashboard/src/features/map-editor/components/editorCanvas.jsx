@@ -100,8 +100,9 @@ export default function EditorCanvas() {
   }, [actions]);
 
   const onStageClick = (e) => {
-    // Only a click on empty canvas (target is the Stage itself) clears selection
-    if (tool === 'select' && e.target === e.target.getStage()) actions.select(null);
+    const stage = e.target.getStage();
+    if (Date.now() < (stage.getAttr('skipClickUntil') ?? 0)) return; // release after an edge drag
+    if (tool === 'select' && e.target === stage) actions.select(null);
   };
 
   /* ---------- render ---------- */

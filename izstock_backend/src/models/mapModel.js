@@ -105,6 +105,9 @@ exports.itemsBySku = () => {
 exports.itemShelves = () =>
     db.prepare('SELECT sku, shelf_id FROM items').all();
 
+exports.shelfItemCount = () =>
+    db.prepare('SELECT shelf_id, COUNT(*) FROM items GROUP BY shelf_id').all();
+
 exports.apply = ({ storeId, version, payload, skuToShelf }) => {
     const upSection = db.prepare(`
         INSERT INTO sections (id, store_id, map_version, name, polygon, color)

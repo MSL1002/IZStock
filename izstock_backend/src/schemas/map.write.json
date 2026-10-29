@@ -11,7 +11,7 @@
     },
     "editedAt": { "type": "string", "format": "date-time" },
     "baseVersion": { "type": "integer" },
-    "units": { "type": "string", "enum": ["meters", "feet"], "default": "meters" },
+    "units": { "type": "string", "enum": ["meters", "feet"], "default": "feet" },
     "sections": {
       "type": "array",
       "items": { "$ref": "#/definitions/section" }

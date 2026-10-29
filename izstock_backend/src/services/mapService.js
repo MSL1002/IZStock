@@ -43,6 +43,7 @@ exports.getEditor = () => {
         version: store.version,
         units: mapModel.getUnits(store.store_id, store.current_version),
         sections: mapModel.loadSections(store.store_id, { includeSkus: true }),
+        shelfItemCounts: mapModel.shelfItemCount()
     };
 };
 
@@ -67,9 +68,11 @@ const checkStructure = (body) => {
 
             for (const sh of a.shelves) {
                 unique('shelf', sh.id);
-                for (const sku of sh.itemSkus) {
-                    if (skuToShelf.has(sku)) throw bad('itemSkus', `SKU ${sku} is on more than one shelf`);
-                    skuToShelf.set(sku, sh.id);
+                if(sh.itemSkus){
+                    for (const sku of sh.itemSkus) {
+                        if (skuToShelf.has(sku)) throw bad('itemSkus', `SKU ${sku} is on more than one shelf`);
+                        skuToShelf.set(sku, sh.id);
+                    }
                 }
             }
         }

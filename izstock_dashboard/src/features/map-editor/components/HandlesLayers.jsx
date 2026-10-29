@@ -2,9 +2,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Circle, Layer, Line, Rect, Transformer } from 'react-konva';
 import {
-    DEFAULT_PX_PER_UNIT as PX, pointToPx, toUnits, rectNodeToPolygon, round, snapPoint, toPx,
+  DEFAULT_PX_PER_UNIT as PX, DEFAULT_SNAP, pointToPx, pointerToStore, toUnits,
+  rectNodeToPolygon, snapPoint, toPx,
 } from '../utils/coords';
-import { bounds, isAxisAlignedRect } from '../utils/geometry';
+import { bounds, distToSegment, isAxisAlignedRect } from '../utils/geometry';
 
 const BLUE = '#0d6efd';
 const PREVIEW_FILL = 'rgba(13, 110, 253, 0.1)';
@@ -91,8 +92,49 @@ function RectHandles({ type, entity, onPolygon }) {
 
 function VertexHandles({ type, entity, scale, onPolygon }) {
     const [preview, setPreview] = useState(null); // polygon in store units while a corner is dragged
+    const [edgeDrag, setEdgeDrag] = useState(null); // { i, stage } while pulling a corner out of edge i
     const poly = entity.polygon;
     const px = (n) => n / scale; // handles keep the same on-screen size at any zoom
+
+    const withInserted = (i, p) => [...poly.slice(0, i + 1), p, ...poly.slice(i + 1)];
+
+    useEffect(() => {
+    if (!edgeDrag) return undefined;
+    const { i, stage } = edgeDrag;
+    let last = null;
+
+    const onMove = () => {
+        const p = pointerToStore(stage); // snapped, clamped to >= 0
+        if (!p) return;
+        last = p;
+        setPreview(withInserted(i, p));
+    };
+
+    const onUp = () => {
+        // This release must not count as a click on empty canvas (it would deselect)
+        stage.setAttr('skipClickUntil', Date.now() + 100);
+        setPreview(null);
+        setEdgeDrag(null);
+        if (!last) return;
+        const a = poly[i];
+        const b = poly[(i + 1) % poly.length];
+        const onNeighbor = [a, b].some((q) => q[0] === last[0] && q[1] === last[1]);
+        if (!onNeighbor && distToSegment(last, a, b) >= DEFAULT_SNAP / 2) {
+            commit(withInserted(i, last));
+        }
+    };
+
+    stage.on('mousemove.edge touchmove.edge', onMove);
+    window.addEventListener('mouseup', onUp, true);
+    window.addEventListener('touchend', onUp, true);
+    return () => {
+    stage.off('.edge');
+    window.removeEventListener('mouseup', onUp, true);
+    window.removeEventListener('touchend', onUp, true);
+    };
+    // poly and commit can't change mid-drag, so the effect only restarts per drag
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [edgeDrag]);
 
     // Snap the node to the grid (and to >= 0) as it moves, then return its store position
     const snapNode = (node) => {
@@ -106,7 +148,7 @@ function VertexHandles({ type, entity, scale, onPolygon }) {
     const insertAfter = (i) => {
         const a = poly[i];
         const b = poly[(i + 1) % poly.length];
-        const mid = [round((a[0] + b[0]) / 2), round((a[1] + b[1]) / 2)];
+        const mid = [Math.round((a[0] + b[0]) / 2), Math.round((a[1] + b[1]) / 2)];
         const next = [...poly];
         next.splice(i + 1, 0, mid);
         commit(next);
@@ -126,16 +168,23 @@ function VertexHandles({ type, entity, scale, onPolygon }) {
                 />
             )}
 
-            {/* edge midpoints: click to add a corner there */}
+            {/* every side is draggable: press anywhere on it and pull out a new corner */}
             {poly.map((a, i) => {
                 const b = poly[(i + 1) % poly.length];
-                const [mx, my] = pointToPx([(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]);
+                const start = (e) => {
+                    e.cancelBubble = true; // stops the Stage from panning instead
+                    setEdgeDrag({ i, stage: e.target.getStage() });
+                };
                 return (
-                    <Circle
-                        key={`m${i}`} x={mx} y={my} radius={px(4)}
-                        fill={BLUE} opacity={0.45}
-                        onClick={() => insertAfter(i)} onTap={() => insertAfter(i)}
-                        onMouseEnter={(e) => setCursor(e, 'copy')} onMouseLeave={(e) => setCursor(e, '')}
+                    <Line
+                    key={`e${i}`}
+                    points={toPx([a, b])}
+                    stroke="rgba(0, 0, 0, 0)" strokeWidth={1}
+                    hitStrokeWidth={14}          // generous grab area, in screen px
+                    strokeScaleEnabled={false}
+                    onMouseDown={start} onTouchStart={start}
+                    onMouseEnter={(e) => setCursor(e, 'crosshair')}
+                    onMouseLeave={(e) => setCursor(e, '')}
                     />
                 );
             })}
