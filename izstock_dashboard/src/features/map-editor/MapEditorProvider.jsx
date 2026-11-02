@@ -141,8 +141,6 @@ export function MapEditorProvider({ storeId, sampleMap = null, children }) {
 
         const snapshot = state.map; // exactly what we send, and what MARK_SAVED records
 
-        console.log(snapshot)
-        console.log(state)
         try {
             const res = await putMap(
                 {

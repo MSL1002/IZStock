@@ -5,7 +5,6 @@ export function getMap(token, { signal } = {}) {
 }
 
 export function putMap(payload, token) {
-  console.log(payload)
   return request('/map', { method: 'PUT', body: payload, token });
 }
 

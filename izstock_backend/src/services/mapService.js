@@ -38,8 +38,6 @@ exports.getPublic = () => {
 exports.getEditor = () => {
     const store = requirePublished();
     const shelfItemCounts = mapModel.shelfItemCount();
-    console.log(shelfItemCounts);
-    console.log(store);
     return {
         storeId: store.store_id,
         status: 'published',
@@ -103,9 +101,9 @@ exports.save = (body, role) => {
         if (body.storeId !== store.store_id) throw bad('storeId', 'storeId does not match this store');
         
         if(body.baseVersion){
-            if (body.baseVersion !== store.version) {
+            if (body.baseVersion !== store.current_version) {
                 throw new AppError(409, 'STALE_VERSION', 'The map changed since you loaded it',
-                    [{ field: 'baseVersion', message: `Server is at version ${store.version}` }]);
+                    [{ field: 'baseVersion', message: `Server is at version ${store.current_version}` }]);
             }
         }
 
@@ -124,7 +122,7 @@ exports.save = (body, role) => {
             throw new AppError(422, 'SHELVES_IN_USE', 'Map would remove shelves that still have items',
                 [...stranded].map((id) => ({ field: 'shelves', message: `Shelf ${id} still has items` })));
         }
-        const version = store.version + 1;
+        const version = store.current_version + 1;
         mapModel.apply({ storeId: store.store_id, version, payload: body, skuToShelf });
 
         logModel.write({

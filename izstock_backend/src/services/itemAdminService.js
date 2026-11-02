@@ -85,7 +85,6 @@ exports.batchDelete = (body, role) => {
 };
 
 exports.list = (query) => {
-    console.log(query.pg)
     const pg = parsePagination(query, {defaultSize:15});
     const { items, total } = itemModel.list({
         name: query.q?.trim() || undefined,
