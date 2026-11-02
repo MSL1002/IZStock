@@ -21,6 +21,8 @@ The IZStock backend is seperated into 2 distinct parts, publicly accessible rout
 ### Web Dashboard
 
 The webdashboard is used by employees / managers on-site. It works as an intranet app and allows associates to perform full CRUD operations on items, including their quantities. Managers have specialized permissions to create and edit their store's map.
+By default, the dashboard is hosted on port 1573, and pings the backend PAI that's hosted on port 4000.
+When changing the web-dashboard's origin, you must change it in both the backend (DASHBOARD_ORIGINS) and the dashboard (PORT) .env files.
 
 ### Private Routes
 
