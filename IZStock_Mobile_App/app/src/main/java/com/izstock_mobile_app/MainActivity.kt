@@ -9,20 +9,30 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.izstock_mobile_app.ui.theme.IZStock_Mobile_AppTheme
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.serialization.json.Json
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            StoreMapCanvas(sampleMap)
+            val context = LocalContext.current;
+            val map = remember {
+                val text = context.resources.openRawResource(R.raw.sample_map)
+                    .bufferedReader().use { it.readText() }
+                Json {ignoreUnknownKeys = true}
+                    .decodeFromString<MapResponse>(text)
+                    .payload
+            }
+            StoreMapCanvas(map)
         }
     }
 }
-
 
 val sampleMap = StoreMap(
     storeId = "store-1", version = 1,
