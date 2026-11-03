@@ -18,30 +18,27 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            IZStock_Mobile_AppTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
+            StoreMapCanvas(sampleMap)
         }
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    IZStock_Mobile_AppTheme {
-        Greeting("Android")
-    }
-}
+val sampleMap = StoreMap(
+    storeId = "store-1", version = 1,
+    sections = listOf(
+        Section(
+            id = "s1", name = "Dairy", color = "#4FC3F7",
+            polygon = listOf(listOf(0f, 0f), listOf(60f, 0f), listOf(60f, 40f), listOf(0f, 40f)),
+            aisles = listOf(
+                Aisle(
+                    id = "a1", aisleNumber = "1",
+                    polygon = listOf(listOf(5f, 5f), listOf(55f, 5f), listOf(55f, 20f), listOf(5f, 20f)),
+                    shelves = listOf(
+                        Shelf("sh1", listOf(listOf(5f, 5f), listOf(55f, 5f), listOf(55f, 9f), listOf(5f, 9f)), "left")
+                    )
+                )
+            )
+        )
+    )
+);
