@@ -34,36 +34,6 @@ class MainActivity : ComponentActivity() {
                 }
                 is MapUiState.Success -> StoreMapCanvas(uiState.map)
             }
-
-
-//            val context = LocalContext.current;
-//            val map = remember {
-//                val text = context.resources.openRawResource(R.raw.sample_map)
-//                    .bufferedReader().use { it.readText() }
-//                Json {ignoreUnknownKeys = true}
-//                    .decodeFromString<MapResponse>(text)
-//                    .payload
-//            }
-//            StoreMapCanvas(map)
         }
     }
 }
-
-val sampleMap = StoreMap(
-    storeId = "store-1", version = 1,
-    sections = listOf(
-        Section(
-            id = "s1", name = "Dairy", color = "#4FC3F7",
-            polygon = listOf(listOf(0f, 0f), listOf(60f, 0f), listOf(60f, 40f), listOf(0f, 40f)),
-            aisles = listOf(
-                Aisle(
-                    id = "a1", aisleNumber = "1",
-                    polygon = listOf(listOf(5f, 5f), listOf(55f, 5f), listOf(55f, 20f), listOf(5f, 20f)),
-                    shelves = listOf(
-                        Shelf("sh1", listOf(listOf(5f, 5f), listOf(55f, 5f), listOf(55f, 9f), listOf(5f, 9f)), "left")
-                    )
-                )
-            )
-        )
-    )
-);
