@@ -1,16 +1,24 @@
 [versions]
 agp = "9.2.1"
+#noinspection GradleDependency
 coreKtx = "1.10.1"
 junit = "4.13.2"
+#noinspection GradleDependency
 junitVersion = "1.1.5"
+#noinspection GradleDependency
 espressoCore = "3.5.1"
 kotlinxSerializationJson = "1.12.0"
 lifecycleRuntimeCompose = "2.11.0"
+#noinspection GradleDependency
 lifecycleRuntimeKtx = "2.6.1"
+#noinspection GradleDependency
 activityCompose = "1.8.0"
+#noinspection NewerVersionAvailable
 kotlin = "2.2.0"
+#noinspection GradleDependency
 composeBom = "2026.02.01"
 okhttp = "5.5.1"
+#noinspection NewerVersionAvailable
 retrofit = "2.11.0"
 
 [libraries]
