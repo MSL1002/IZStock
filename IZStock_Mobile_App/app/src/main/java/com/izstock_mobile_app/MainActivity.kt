@@ -18,17 +18,20 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-
             val vm: MapViewModel = viewModel()
-            val uiState = vm.state.collectAsStateWithLifecycle().value
-
-            when (uiState){
+            when (val uiState = vm.state.collectAsStateWithLifecycle().value){
                 is MapUiState.Loading -> CircularProgressIndicator()
                 is MapUiState.Error -> Column(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
                     ){
+                    if(uiState.message.contains("404")){
+                        Text("Unable to reach the server to get the map.")
+                    }
+                    else{
+                        Text("Something went wrong.")
+                    }
                     Text(uiState.message)
                     Button(onClick = { vm.load() }) {Text("Retry")}
                 }
