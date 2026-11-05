@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.izstock_mobile_app.map.MapScreen
 import com.izstock_mobile_app.ui.theme.*
 
 
@@ -14,7 +13,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             IZStock_Mobile_AppTheme {
-                MapScreen()
+                IZStockApp()
             }
         }
     }

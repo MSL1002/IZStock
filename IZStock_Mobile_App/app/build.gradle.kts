@@ -41,6 +41,7 @@ android {
 
 dependencies {
     implementation(libs.retrofit.v2110)
+    implementation("androidx.navigation:navigation-compose:2.8.5")
     implementation("com.squareup.retrofit2:converter-kotlinx-serialization:2.11.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation(libs.okhttp)

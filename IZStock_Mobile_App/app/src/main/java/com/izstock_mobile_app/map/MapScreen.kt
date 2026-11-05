@@ -36,30 +36,27 @@ fun MapContent(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            contentAlignment = Alignment.Center
-        ) {
-            when (uiState) {
-                is MapUiState.Loading -> CircularProgressIndicator()
-                is MapUiState.Error -> Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    if(uiState.message.contains("404")){
-                        Text("Unable to connect to server.")
-                    }
-                    else{
-                        Text("An unknown error occurred.")
-                    }
-                    Text(uiState.message)
-                    Button(onClick = onRetry) { Text("Retry") }
+    Box(
+        modifier = Modifier
+            .fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        when (uiState) {
+            is MapUiState.Loading -> CircularProgressIndicator()
+            is MapUiState.Error -> Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                if (uiState.message.contains("404")) {
+                    Text("Unable to connect to server.")
+                } else {
+                    Text("An unknown error occurred.")
                 }
-                is MapUiState.Success -> StoreMapCanvas(uiState.map)
+                Text(uiState.message)
+                Button(onClick = onRetry) { Text("Retry") }
             }
+
+            is MapUiState.Success -> StoreMapCanvas(uiState.map)
         }
     }
 }
