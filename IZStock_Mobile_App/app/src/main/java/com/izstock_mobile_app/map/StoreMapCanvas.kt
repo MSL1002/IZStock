@@ -1,4 +1,4 @@
-package com.izstock_mobile_app
+package com.izstock_mobile_app.map
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTransformGestures
@@ -21,6 +21,7 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.sp
+import com.izstock_mobile_app.data.StoreMap
 
 
 private fun List<List<Float>>.toPath() = Path().apply {

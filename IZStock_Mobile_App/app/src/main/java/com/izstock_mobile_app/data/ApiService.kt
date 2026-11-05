@@ -1,4 +1,4 @@
-package com.izstock_mobile_app
+package com.izstock_mobile_app.data
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
@@ -15,7 +15,7 @@ object ApiClient {
     //TODO: should I move this to an .env? probably...
     private const val BASE_URL = "https://subtitle-usual-reborn.ngrok-free.dev/"
 
-    private val json = kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
+    private val json = Json { ignoreUnknownKeys = true }
 
     val api: IZStockApi = Retrofit.Builder()
         .baseUrl(BASE_URL)

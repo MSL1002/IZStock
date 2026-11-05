@@ -1,4 +1,4 @@
-package com.izstock_mobile_app
+package com.izstock_mobile_app.data
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

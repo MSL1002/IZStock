@@ -1,7 +1,9 @@
-package com.izstock_mobile_app
+package com.izstock_mobile_app.map
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.izstock_mobile_app.data.ApiClient
+import com.izstock_mobile_app.data.StoreMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
