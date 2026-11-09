@@ -15,7 +15,7 @@ router.get('/search', (req, res) => {
 router.get('/suggest', (req, res) => {
     const item = itemModel.suggestByName(req.query.name, req.query.limit ? parseInt(req.query.limit) : 10);
     if(!item) return res.status(404).json({ error: `Item with name ${req.query.name} not found` });
-    res.json(item);
+    res.json({items: item});
 });
 
 // find items by a list of SKUs
@@ -24,7 +24,7 @@ router.post('/lookup', (req, res) => {
     const skus = req.body.skus;
     if(!skus || !Array.isArray(skus)) return res.status(400).json({ error: 'Invalid request body' });
     const items = skus.map((sku) => itemModel.findBySku(sku)).filter(Boolean);
-    res.json(items);
+    res.json({items: items});
 });
 
 // get an item by it's sku
