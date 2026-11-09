@@ -67,7 +67,9 @@ fun HomeContent(
 ) {
     val focusManager = LocalFocusManager.current
 
-    Column(modifier.fillMaxSize().padding(16.dp)) {
+    Column(modifier
+        .fillMaxSize()
+        .padding(16.dp)) {
         OutlinedTextField(
             value = query,
             onValueChange = onQueryChange,
@@ -109,11 +111,22 @@ fun HomeContent(
             is SearchState.Loading -> Box(Modifier.fillMaxSize(), Alignment.Center) {
                 CircularProgressIndicator()
             }
-            is SearchState.Error -> {
-                if (state.message.contains("404")) {
-                    CenteredMessage("Unable to connect to server.")
-                } else {
-                    CenteredMessage("An unknown error occurred.")
+            is SearchState.Error -> Box(
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    if (state.message.contains("404")) {
+                        Text("Unable to connect to server.")
+                    } else {
+                        Text("An unknown error occurred.")
+                    }
+                    Text(state.message)
+                    Button(onClick = onSubmit) { Text("Retry") }
                 }
             }
             is SearchState.Success -> {
@@ -155,14 +168,18 @@ fun ResultsList(state: SearchState.Success, onItemClick: (Item) -> Unit, onLoadM
         }
         if (state.isLoadingMore) {
             item {
-                Box(Modifier.fillMaxWidth().padding(16.dp), Alignment.Center) {
+                Box(Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp), Alignment.Center) {
                     CircularProgressIndicator()
                 }
             }
         }
         if (state.loadingMoreFailed) {
             item {
-                Box(Modifier.fillMaxWidth().padding(8.dp), Alignment.Center) {
+                Box(Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp), Alignment.Center) {
                     TextButton(onClick = onLoadMore) { Text("Couldn't load more. Tap to retry") }
                 }
             }
