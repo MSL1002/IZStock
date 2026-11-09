@@ -17,16 +17,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 @Composable
-private fun Placeholder(title: String, modifier: Modifier = Modifier) {
-    Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(title, style = MaterialTheme.typography.headlineMedium)
-    }
-}
-
-@Composable
-fun HomeScreen() = Placeholder("Home")
-
-@Composable
 fun ListScreen() = Placeholder("My List")
 
 @Composable

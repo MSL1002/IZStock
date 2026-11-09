@@ -1,0 +1,120 @@
+package com.izstock_mobile_app.data
+
+import android.nfc.tech.MifareUltralight.PAGE_SIZE
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.WhileSubscribed
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import kotlin.collections.emptyList
+import kotlin.time.Duration.Companion.milliseconds
+
+sealed interface SearchState {
+    data object Idle : SearchState
+    data object Loading : SearchState
+    data class Success(
+        val items: List<Item>,
+        val total: Int,
+        val isLoadingMore: Boolean = false,
+        val loadingMoreFailed: Boolean = false
+    ): SearchState {
+        val hasMore: Boolean get() = items.size < total
+    }
+    data class Error(val message: String): SearchState
+}
+
+@OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
+class SearchViewModel : ViewModel() {
+
+    private companion object {const val PAGE_SIZE = 20}
+
+    private val _query = MutableStateFlow("")
+    val query: StateFlow<String> = _query.asStateFlow()
+
+    private val _state = MutableStateFlow<SearchState>(SearchState.Idle)
+    val state: StateFlow<SearchState> = _state.asStateFlow()
+
+    private var searchJob: Job? = null
+
+    val suggestions: StateFlow<List<Item>> = _query
+        .debounce(250.milliseconds)
+        .map{it.trim()}
+        .distinctUntilChanged()
+        .mapLatest { q ->
+            if (q.isEmpty()) emptyList()
+            else try {
+                ApiClient.api.suggest(q).items
+            } catch (e: CancellationException){
+                throw e
+            }catch (e: Exception){
+                android.util.Log.e("Suggest", "Suggest failed with param '$q'", e)
+                emptyList()
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    fun onQueryChange(newQuery: String){
+        _query.value = newQuery
+        searchJob?.cancel()
+        _state.value = SearchState.Idle
+    }
+
+    private var activeQuery = ""
+    private var nextPage = 2
+
+    fun onSubmit() {
+        val q = _query.value.trim()
+        if (q.isEmpty()) return
+        searchJob?.cancel()
+        _state.value = SearchState.Loading
+        searchJob = viewModelScope.launch {
+            _state.value = try {
+                val r = ApiClient.api.search(q, page = 1, pageSize = PAGE_SIZE)
+                nextPage = 2
+                SearchState.Success(r.items, r.total)
+            } catch (e: CancellationException){
+                throw e
+            }catch (e: Exception){
+                SearchState.Error(e.message ?: "Search Failed")
+            }
+        }
+    }
+
+    fun loadMore() {
+        val current = _state.value as? SearchState.Success ?: return
+        if (current.isLoadingMore || !current.hasMore) return
+        _state.value = current.copy(isLoadingMore = true, loadingMoreFailed = false)
+        searchJob = viewModelScope.launch {
+            try{
+                val r = ApiClient.api.search(activeQuery, nextPage, PAGE_SIZE)
+                nextPage++
+                val merged = (current.items + r.items).distinctBy { it.sku }
+                val total = if (r.items.isEmpty()) merged.size else r.total
+                _state.value = SearchState.Success(merged, total)
+            } catch (e: CancellationException){
+                throw e
+            }catch (e: Exception){
+                _state.value = current.copy(isLoadingMore = false, loadingMoreFailed = true)
+            }
+        }
+    }
+
+    fun onSuggestionClick(name: String) {
+        _query.value = name
+        onSubmit()
+    }
+
+    fun clear() = onQueryChange("")
+}

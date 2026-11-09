@@ -4,10 +4,17 @@ import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.Retrofit
 import retrofit2.http.GET
+import retrofit2.http.Query
 
 interface IZStockApi {
     @GET("map")
     suspend fun getMap(): MapResponse
+
+    @GET("items/suggest")
+    suspend fun suggest(@Query("name") name: String, @Query("limit") limit: Int = 8): ItemResponse
+
+    @GET("items/search")
+    suspend fun search(@Query("name") name: String, @Query("pageSize") pageSize: Int = 20, @Query("page") page: Int = 1): PaginatedItemResponse
 }
 
 object ApiClient {

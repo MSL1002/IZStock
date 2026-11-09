@@ -1,4 +1,4 @@
-package com.izstock_mobile_app
+package com.izstock_mobile_app.data
 
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
