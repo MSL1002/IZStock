@@ -3,6 +3,9 @@ package com.izstock_mobile_app.data
 import android.nfc.tech.MifareUltralight.PAGE_SIZE
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import com.izstock_mobile_app.search.RecentSearchStore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -10,7 +13,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.WhileSubscribed
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -36,9 +38,23 @@ sealed interface SearchState {
 }
 
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
-class SearchViewModel : ViewModel() {
+class SearchViewModel(app: Application) : AndroidViewModel(app) {
 
-    private companion object {const val PAGE_SIZE = 20}
+    private val store = RecentSearchStore(app.applicationContext)
+
+    val recents: StateFlow<List<String>> = store.recents
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    private class CachedPage(val state: SearchState.Success, val savedAt: Long)
+    private val cache = object : LinkedHashMap<String, CachedPage>(16, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, CachedPage>?) =
+            size > 20
+    }
+
+    private companion object {
+        const val PAGE_SIZE = 20
+        const val CACHE_TTL_MS = 2 * 60 * 1000L
+    }
 
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query.asStateFlow()
@@ -78,19 +94,37 @@ class SearchViewModel : ViewModel() {
         val q = _query.value.trim()
         if (q.isEmpty()) return
         searchJob?.cancel()
+        activeQuery = q
+        val key = q.lowercase()
+
+        // Cache hit: show instantly, skip the network
+        cache[key]?.takeIf { System.currentTimeMillis() - it.savedAt < CACHE_TTL_MS }?.let {
+            nextPage = 2
+            _state.value = it.state
+            viewModelScope.launch { store.add(q) }
+            return
+        }
+
         _state.value = SearchState.Loading
         searchJob = viewModelScope.launch {
             _state.value = try {
                 val r = ApiClient.api.search(q, page = 1, pageSize = PAGE_SIZE)
                 nextPage = 2
-                SearchState.Success(r.items, r.total)
-            } catch (e: CancellationException){
+                val success = SearchState.Success(r.items, r.total)
+                cache[key] = CachedPage(success, System.currentTimeMillis())
+                if (r.items.isNotEmpty()) store.add(q)   // only remember searches that found something
+                success
+            } catch (e: CancellationException) {
                 throw e
-            }catch (e: Exception){
-                SearchState.Error(e.message ?: "Search Failed")
+            } catch (e: Exception) {
+                SearchState.Error(e.message ?: "Search failed")
             }
         }
     }
+
+    fun removeRecent(query: String) { viewModelScope.launch { store.remove(query) } }
+
+    fun clearRecents() { viewModelScope.launch { store.clear() } }
 
     fun loadMore() {
         val current = _state.value as? SearchState.Success ?: return
