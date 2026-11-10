@@ -25,17 +25,19 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.izstock_mobile_app.data.Item
 import com.izstock_mobile_app.data.SearchState
 import com.izstock_mobile_app.data.SearchViewModel
+import com.izstock_mobile_app.search.HomeContent
 
 // Stateful
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
     viewModel: SearchViewModel = viewModel(),
-    onItemClick: (Item) -> Unit = {}   // week 7: navigate to detail / highlight on map
+    onItemClick: (Item) -> Unit = {},   // week 7: navigate to detail / highlight on map
 ) {
     val query = viewModel.query.collectAsStateWithLifecycle().value
     val state = viewModel.state.collectAsStateWithLifecycle().value
     val suggestions = viewModel.suggestions.collectAsStateWithLifecycle().value
+    val recents = viewModel.recents.collectAsStateWithLifecycle().value
 
     HomeContent(
         query = query,
@@ -48,6 +50,9 @@ fun HomeScreen(
         onItemClick = onItemClick,
         modifier = modifier,
         onLoadMore = viewModel::loadMore,
+        recents = recents,
+        onRemoveRecent = viewModel::removeRecent,
+        onClearRecents = viewModel::clearRecents
     )
 }
 
@@ -63,7 +68,10 @@ fun HomeContent(
     onClear: () -> Unit,
     onItemClick: (Item) -> Unit,
     modifier: Modifier = Modifier,
-    onLoadMore: () -> Unit
+    onLoadMore: () -> Unit,
+    recents: List<String>,
+    onRemoveRecent: (String) -> Unit,
+    onClearRecents: () -> Unit
 ) {
     val focusManager = LocalFocusManager.current
 
@@ -96,7 +104,16 @@ fun HomeContent(
         when (state) {
             is SearchState.Idle -> {
                 if (query.isBlank()) {
-                    CenteredMessage("Search for an item by it's name")
+                    if (recents.isEmpty()) {
+                        CenteredMessage("Search for an item")
+                    } else {
+                        RecentSearches(
+                            recents = recents,
+                            onClick = { focusManager.clearFocus(); onSuggestionClick(it) },
+                            onRemove = onRemoveRecent,
+                            onClearAll = onClearRecents
+                        )
+                    }
                 } else {
                     LazyColumn {
                         items(suggestions, key = { it.name }) { item ->
@@ -134,6 +151,39 @@ fun HomeContent(
                     CenteredMessage("No items found for \"${query.trim()}\"")
                 } else {
                     ResultsList(state, onItemClick, onLoadMore)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RecentSearches(
+    recents: List<String>,
+    onClick: (String) -> Unit,
+    onRemove: (String) -> Unit,
+    onClearAll: () -> Unit
+) {
+    LazyColumn {
+        item {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Recent searches", style = MaterialTheme.typography.titleSmall)
+                TextButton(onClick = onClearAll) { Text("Clear all") }
+            }
+        }
+        items(recents, key = { it }) { q ->
+            Row(
+                Modifier.fillMaxWidth().clickable { onClick(q) },
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(q, Modifier.padding(vertical = 12.dp, horizontal = 4.dp))
+                IconButton(onClick = { onRemove(q) }) {
+                    Icon(painterResource(R.drawable.ic_close), contentDescription = "Remove $q")
                 }
             }
         }

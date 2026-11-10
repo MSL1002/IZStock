@@ -1,10 +1,12 @@
 package com.izstock_mobile_app.data
+
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.Retrofit
 import retrofit2.http.GET
 import retrofit2.http.Query
+import com.izstock_mobile_app.BuildConfig
 
 interface IZStockApi {
     @GET("map")
@@ -18,9 +20,7 @@ interface IZStockApi {
 }
 
 object ApiClient {
-
-    //TODO: should I move this to an .env? probably...
-    private const val BASE_URL = "https://subtitle-usual-reborn.ngrok-free.dev/"
+    private const val BASE_URL = BuildConfig.BASE_URL
 
     private val json = Json { ignoreUnknownKeys = true }
 
