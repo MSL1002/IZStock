@@ -12,6 +12,12 @@ interface IZStockApi {
     @GET("map")
     suspend fun getMap(): MapResponse
 
+    @GET("map/version")
+    suspend fun getMapVersion(): MapVersionResponse
+
+    @GET("items/catalog")
+    suspend fun catalog(@Query("page") page: Int = 1, @Query("pageSize") pageSize: Int = 500): PaginatedItemResponse
+
     @GET("items/suggest")
     suspend fun suggest(@Query("name") name: String, @Query("limit") limit: Int = 8): ItemResponse
 
@@ -22,7 +28,7 @@ interface IZStockApi {
 object ApiClient {
     private const val BASE_URL = BuildConfig.BASE_URL
 
-    private val json = Json { ignoreUnknownKeys = true }
+    val json = Json { ignoreUnknownKeys = true }
 
     val api: IZStockApi = Retrofit.Builder()
         .baseUrl(BASE_URL)

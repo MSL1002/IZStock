@@ -40,10 +40,16 @@ sealed interface SearchState {
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 class SearchViewModel(app: Application) : AndroidViewModel(app) {
 
+    private val repo = ItemRepository(app)
+
     private val store = RecentSearchStore(app.applicationContext)
 
     val recents: StateFlow<List<String>> = store.recents
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    init {
+        viewModelScope.launch { repo.syncIfStale() }
+    }
 
     private class CachedPage(val state: SearchState.Success, val savedAt: Long)
     private val cache = object : LinkedHashMap<String, CachedPage>(16, 0.75f, true) {
@@ -64,18 +70,27 @@ class SearchViewModel(app: Application) : AndroidViewModel(app) {
 
     private var searchJob: Job? = null
 
+    private suspend fun fetchPage(q: String, page: Int): PaginatedItemResponse =
+        try {
+            ApiClient.api.search(q, page = page, pageSize = PAGE_SIZE)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            repo.search(q, page, PAGE_SIZE) ?: throw e
+        }
+
     val suggestions: StateFlow<List<Item>> = _query
         .debounce(250.milliseconds)
         .map{it.trim()}
         .distinctUntilChanged()
         .mapLatest { q ->
             if (q.isEmpty()) emptyList()
-            else try {
+            else repo.suggest(q) ?: try {
                 ApiClient.api.suggest(q).items
             } catch (e: CancellationException){
                 throw e
             }catch (e: Exception){
-                android.util.Log.e("Suggest", "Suggest failed with param '$q'", e)
+                android.util.Log.e("Suggest", "Suggest failed for '$q'", e)
                 emptyList()
             }
         }
@@ -97,7 +112,7 @@ class SearchViewModel(app: Application) : AndroidViewModel(app) {
         activeQuery = q
         val key = q.lowercase()
 
-        // Cache hit: show instantly, skip the network
+        // hit cache instead of network
         cache[key]?.takeIf { System.currentTimeMillis() - it.savedAt < CACHE_TTL_MS }?.let {
             nextPage = 2
             _state.value = it.state
@@ -108,7 +123,7 @@ class SearchViewModel(app: Application) : AndroidViewModel(app) {
         _state.value = SearchState.Loading
         searchJob = viewModelScope.launch {
             _state.value = try {
-                val r = ApiClient.api.search(q, page = 1, pageSize = PAGE_SIZE)
+                val r = fetchPage(q, 1)
                 nextPage = 2
                 val success = SearchState.Success(r.items, r.total)
                 cache[key] = CachedPage(success, System.currentTimeMillis())
@@ -132,7 +147,7 @@ class SearchViewModel(app: Application) : AndroidViewModel(app) {
         _state.value = current.copy(isLoadingMore = true, loadingMoreFailed = false)
         searchJob = viewModelScope.launch {
             try{
-                val r = ApiClient.api.search(activeQuery, nextPage, PAGE_SIZE)
+                val r = fetchPage(activeQuery, nextPage)
                 nextPage++
                 val merged = (current.items + r.items).distinctBy { it.sku }
                 val total = if (r.items.isEmpty()) merged.size else r.total

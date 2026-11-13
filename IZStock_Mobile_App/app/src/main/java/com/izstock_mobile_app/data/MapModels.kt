@@ -4,6 +4,11 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class MapVersionResponse(
+    val version: Int,
+)
+
+@Serializable
 data class MapResponse(
     val id: String,
     @SerialName("store_id") val storeId: String,

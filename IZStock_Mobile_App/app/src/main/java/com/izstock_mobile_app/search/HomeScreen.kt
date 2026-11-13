@@ -148,7 +148,7 @@ fun HomeContent(
             }
             is SearchState.Success -> {
                 if (state.items.isEmpty()) {
-                    CenteredMessage("No items found for \"${query.trim()}\"")
+                    CenteredMessage("No results found for \"${query.trim()}\"")
                 } else {
                     ResultsList(state, onItemClick, onLoadMore)
                 }

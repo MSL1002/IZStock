@@ -22,5 +22,5 @@ data class PaginatedItemResponse(
     val page: Int = 1,
     val pageSize: Int = 25,
     val total: Int,
-    val totalPages: Int,
+    val totalPages: Int = 1,
 )
