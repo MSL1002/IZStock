@@ -27,6 +27,17 @@ router.post('/lookup', (req, res) => {
     res.json({items: items});
 });
 
+router.get('/catalog', (req, res) =>{
+    const page = req.query.page ? parseInt(req.query.page) : 1;
+    const pageSize = req.query.page ? parseInt(req.query.pageSize) : 500;
+
+    const total = itemModel.numItems();
+
+    const rows = itemModel.getAllItems(page, pageSize, total);
+    res.json(rows);
+
+})
+
 // get an item by it's sku
 router.get('/:sku', (req, res) => {
     const item = itemModel.findBySku(req.params.sku);

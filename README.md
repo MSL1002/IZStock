@@ -59,3 +59,15 @@ The mobile app is used by customers, and displays the items along with a map. Th
 | /auth/logout                | POST   | {tokenHash}                   | Invalidates user's session token.                                                                       |
 | /me/list                    | GET    | {tokenHash}                   | Fetch saved list using the bearer token.                                                                |
 | /me/list                    | PUT    | {tokenHash}                   | Replace the list when a user updates their list.                                                        |
+
+#### Mobile app features
+
+The mobile app features chaching for quick and efficient map viewing and item suggestion while typing.
+
+*Item Caching*
+
+Caching the items for search suggestions is done by querying for every item in the database. This is then stored in an internal database on the user's device. This process is done arround once every 5 minutes while the application is open.
+
+*Map Caching*
+
+Map caching is done to ensure even while in an area with little to no internet, the user is able to see where they are in the store. The map is updated on the users device everytime the manager updates the map through the web dashboard.

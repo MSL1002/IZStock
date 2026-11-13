@@ -61,6 +61,16 @@ exports.list = ({ name, aisle, pageSize, offset }) => {
   return { items: rows.map(toItem), total };
 };
 
+exports.getAllItems = (page, pageSize, total) => {
+  const rows = db.prepare(`${baseSelect} LIMIT ? OFFSET ?`).all(pageSize, (page - 1) * pageSize);
+
+  return { items: rows, total, page, pageSize };
+};
+
+exports.numItems = () => {
+  return db.prepare('SELECT COUNT(*) AS n FROM items').get().n;
+};
+
 //EMPLOYEES ONLY
 
 exports.create = ({ sku, name, price, quantity, shelfId, imageUrl }) =>
