@@ -25,7 +25,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.izstock_mobile_app.data.Item
 import com.izstock_mobile_app.data.SearchState
 import com.izstock_mobile_app.data.SearchViewModel
-import com.izstock_mobile_app.search.HomeContent
 
 // Stateful
 @Composable

@@ -17,12 +17,18 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.izstock_mobile_app.Routes.item
 import com.izstock_mobile_app.data.SessionViewModel
+import com.izstock_mobile_app.item.ItemDetailScreen
+import com.izstock_mobile_app.item.ItemDetails
 import com.izstock_mobile_app.map.MapScreen
+import com.izstock_mobile_app.map.PinViewModel
 import com.izstock_mobile_app.search.HomeScreen
 
 object Routes {
@@ -31,6 +37,8 @@ object Routes {
     const val LIST = "list"
     const val LOGIN = "login"
     const val REGISTER = "register"
+    const val ITEM = "item/{sku}"
+    fun item(sku: String) = "item/${android.net.Uri.encode(sku)}"
 }
 
 enum class TopLevelDestination(
@@ -50,6 +58,8 @@ fun IZStockApp() {
     val currentDestination = backStackEntry?.destination
 
     val sessionViewModel: SessionViewModel = viewModel()
+    val pinViewModel: PinViewModel = viewModel()
+    val pin by pinViewModel.pin.collectAsStateWithLifecycle()
     val isSignedIn by sessionViewModel.isSignedIn.collectAsStateWithLifecycle()
 
     // Only show the bottom bar on the three main tabs
@@ -91,8 +101,25 @@ fun IZStockApp() {
             popEnterTransition = { fadeIn(tween(50)) },
             popExitTransition = { fadeOut(tween(50)) }
         ) {
-            composable(Routes.HOME) { HomeScreen() }
-            composable(Routes.MAP) { MapScreen() }
+            composable(Routes.HOME) { HomeScreen( onItemClick = {item -> navController.navigate(Routes.item(item.sku))} ) }
+            composable(
+                route = Routes.ITEM,
+                arguments = listOf(navArgument("sku") {type = NavType.StringType})
+            ) {
+                ItemDetailScreen(
+                    onBack = {navController.popBackStack() },
+                    onShowOnMap = { item ->
+                        pinViewModel.pin(item)
+                        navController.navigate(Routes.MAP) {
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+
+                )
+            }
+            composable(Routes.MAP) { MapScreen(pin = pin, onClearPin = pinViewModel::clear) }
             composable(Routes.LIST,
                 exitTransition = {
                     if (targetState.destination.route in setOf(Routes.LOGIN, Routes.REGISTER)) {

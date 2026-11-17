@@ -42,7 +42,10 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.material3)
+    implementation(libs.billing)
     implementation(libs.retrofit.v2110)
+    implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
     implementation("androidx.navigation:navigation-compose:2.8.5")
     implementation("com.squareup.retrofit2:converter-kotlinx-serialization:2.11.0")

@@ -20,7 +20,10 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.izstock_mobile_app.data.Aisle
+import com.izstock_mobile_app.data.Shelf
 import com.izstock_mobile_app.data.StoreMap
 
 
@@ -36,8 +39,17 @@ private fun List<List<Float>>.boundsBox(): FloatArray = floatArrayOf(
 private fun parseColor(hex: String?, fallback: Color): Color =
     hex?.let { runCatching { Color(it.toColorInt()) }.getOrNull() } ?: fallback
 
+fun StoreMap.findShelf(shelfId:String): Pair<Aisle, Shelf>?{
+    sections.forEach { s ->
+        s.aisles.forEach { a ->
+            a.shelves.firstOrNull { it.id == shelfId }?.let {return a to it}
+        }
+    }
+    return null
+}
+
 @Composable
-fun StoreMapCanvas(map: StoreMap, modifier: Modifier = Modifier) {
+fun StoreMapCanvas(map: StoreMap, pin: MapPin ?= null, modifier: Modifier = Modifier) {
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
     var userScale by remember { mutableFloatStateOf(1f) }
     var userOffset by remember { mutableStateOf(Offset.Zero) }
@@ -45,6 +57,14 @@ fun StoreMapCanvas(map: StoreMap, modifier: Modifier = Modifier) {
     val textMeasurer = rememberTextMeasurer()
     val labelColor = MaterialTheme.colorScheme.onSurface
     val labelBg = MaterialTheme.colorScheme.surface.copy(alpha = 0.75f)
+
+    val pinColor = MaterialTheme.colorScheme.error
+    val pinShelfId = pin?.shelfId
+    val pinTarget = remember(map, pinShelfId) {
+        pinShelfId
+            ?.let { map.findShelf(it)?.second?.polygon?.boundsBox() }
+            ?.let { b -> Offset((b[0] + b[2]) / 2f, (b[1] + b[3]) / 2f) }
+    }
 
     // bounding box of every section point, computed once per map
     val bounds = remember(map) {
@@ -66,6 +86,16 @@ fun StoreMapCanvas(map: StoreMap, modifier: Modifier = Modifier) {
         (canvasSize.height - worldH * baseScale) / 2f - bounds[1] * baseScale
     )
 
+    LaunchedEffect(pinTarget, canvasSize) {
+        val t = pinTarget ?: return@LaunchedEffect
+        if (canvasSize == IntSize.Zero) return@LaunchedEffect
+        val zoom = 3f
+        // Solve toScreen(t) == canvas center for userOffset
+        userScale = zoom
+        userOffset = Offset(canvasSize.width / 2f, canvasSize.height / 2f) -
+                Offset(t.x * baseScale + baseOffset.x, t.y * baseScale + baseOffset.y) * zoom
+    }
+
     Canvas(
         modifier = modifier
             .fillMaxSize()
@@ -74,7 +104,6 @@ fun StoreMapCanvas(map: StoreMap, modifier: Modifier = Modifier) {
                 detectTransformGestures { centroid, pan, zoom, _ ->
                     val newScale = (userScale * zoom).coerceIn(0.5f, 8f)
                     val z = newScale / userScale
-                    // Zoom around the fingers, then apply pan
                     userOffset = (userOffset - centroid) * z + centroid + pan
                     userScale = newScale
                 }
@@ -95,7 +124,12 @@ fun StoreMapCanvas(map: StoreMap, modifier: Modifier = Modifier) {
                 section.aisles.forEach { aisle ->
                     drawPath(aisle.polygon.toPath(), Color.DarkGray, style = Stroke(line))
                     aisle.shelves.forEach { shelf ->
-                        drawPath(shelf.polygon.toPath(), Color(0xFF6D4C41).copy(alpha = 0.6f))
+                        val color = if(shelf.id == pinShelfId) {
+                            pinColor.copy(alpha=.85f)
+                        } else {
+                            Color(0xFF6D4C41).copy(alpha = 0.6f)
+                        }
+                        drawPath(shelf.polygon.toPath(), color)
                     }
                 }
             }
@@ -129,6 +163,21 @@ fun StoreMapCanvas(map: StoreMap, modifier: Modifier = Modifier) {
                     )
                 }
             }
+        }
+
+        pinTarget?.let { t ->
+            val tip = toScreen(t.x, t.y)
+            val r = 11.dp.toPx()
+            val head = Offset(tip.x, tip.y - 30.dp.toPx())
+            val point = Path().apply {
+                moveTo(tip.x, tip.y)
+                lineTo(head.x - r * 0.85f, head.y + r * 0.5f)
+                lineTo(head.x + r * 0.85f, head.y + r * 0.5f)
+                close()
+            }
+            drawPath(point, pinColor)
+            drawCircle(pinColor, r, head)
+            drawCircle(Color.White, r * 0.4f, head)
         }
     }
 }

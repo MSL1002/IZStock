@@ -7,6 +7,7 @@ import retrofit2.Retrofit
 import retrofit2.http.GET
 import retrofit2.http.Query
 import com.izstock_mobile_app.BuildConfig
+import retrofit2.http.Path
 
 interface IZStockApi {
     @GET("map")
@@ -14,6 +15,9 @@ interface IZStockApi {
 
     @GET("map/version")
     suspend fun getMapVersion(): MapVersionResponse
+
+    @GET("items/{sku}")
+    suspend fun getItem(@Path("sku") sku: String): Item
 
     @GET("items/catalog")
     suspend fun catalog(@Query("page") page: Int = 1, @Query("pageSize") pageSize: Int = 500): PaginatedItemResponse
