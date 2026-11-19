@@ -60,7 +60,7 @@ The mobile app is used by customers, and displays the items along with a map. Th
 | /me/list                    | GET    | {tokenHash}                   | Fetch saved list using the bearer token.                                                                |
 | /me/list                    | PUT    | {tokenHash}                   | Replace the list when a user updates their list.                                                        |
 
-#### Mobile app features
+#### Mobile App Features
 
 The mobile app features chaching for quick and efficient map viewing and item suggestion while typing.
 
@@ -71,3 +71,11 @@ Caching the items for search suggestions is done by querying for every item in t
 *Map Caching*
 
 Map caching is done to ensure even while in an area with little to no internet, the user is able to see where they are in the store. The map is updated on the users device everytime the manager updates the map through the web dashboard.
+
+#### Mobile App Setup
+
+Before building the app for production, it is required to edit local.properties.
+
+Follow the local.properties.example file's lead, by adding a "BASE_URL" variable and adding the tunnel URL there.
+Without it, users will be unable to connect to the database.
+
