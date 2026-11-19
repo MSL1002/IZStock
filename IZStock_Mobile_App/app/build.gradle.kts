@@ -42,6 +42,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.leanback)
     implementation(libs.androidx.material3)
     implementation(libs.billing)
     implementation(libs.retrofit.v2110)

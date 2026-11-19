@@ -25,13 +25,18 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.izstock_mobile_app.data.Item
 import com.izstock_mobile_app.data.SearchState
 import com.izstock_mobile_app.data.SearchViewModel
+import com.izstock_mobile_app.list.AddToListControl
 
 // Stateful
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
     viewModel: SearchViewModel = viewModel(),
-    onItemClick: (Item) -> Unit = {},   // week 7: navigate to detail / highlight on map
+    onItemClick: (Item) -> Unit = {},
+    onAccountClick: () -> Unit = {},
+    listQuantities: Map<String, Int>,
+    onAddToList: (Item) -> Unit,
+    onDecreaseInList: (Item) -> Unit,
 ) {
     val query = viewModel.query.collectAsStateWithLifecycle().value
     val state = viewModel.state.collectAsStateWithLifecycle().value
@@ -51,7 +56,12 @@ fun HomeScreen(
         onLoadMore = viewModel::loadMore,
         recents = recents,
         onRemoveRecent = viewModel::removeRecent,
-        onClearRecents = viewModel::clearRecents
+        onClearRecents = viewModel::clearRecents,
+        onAccountClick = onAccountClick,
+        onAddToList = onAddToList,
+        listQuantities =  listQuantities,
+        onDecreaseInList = onDecreaseInList
+
     )
 }
 
@@ -66,17 +76,28 @@ fun HomeContent(
     onSuggestionClick: (String) -> Unit,
     onClear: () -> Unit,
     onItemClick: (Item) -> Unit,
+    onAccountClick: () -> Unit,
     modifier: Modifier = Modifier,
     onLoadMore: () -> Unit,
     recents: List<String>,
     onRemoveRecent: (String) -> Unit,
-    onClearRecents: () -> Unit
+    onClearRecents: () -> Unit,
+    listQuantities: Map<String, Int>,
+    onAddToList: (Item) -> Unit,
+    onDecreaseInList: (Item) -> Unit,
 ) {
     val focusManager = LocalFocusManager.current
+
+
 
     Column(modifier
         .fillMaxSize()
         .padding(16.dp)) {
+
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            TextButton(onClick = onAccountClick) { Text("Account") }
+        }
+
         OutlinedTextField(
             value = query,
             onValueChange = onQueryChange,
@@ -149,7 +170,7 @@ fun HomeContent(
                 if (state.items.isEmpty()) {
                     CenteredMessage("No results found for \"${query.trim()}\"")
                 } else {
-                    ResultsList(state, onItemClick, onLoadMore)
+                    ResultsList(state, onItemClick, onLoadMore, listQuantities, onAddToList, onDecreaseInList)
                 }
             }
         }
@@ -190,7 +211,14 @@ private fun RecentSearches(
 }
 
 @Composable
-fun ResultsList(state: SearchState.Success, onItemClick: (Item) -> Unit, onLoadMore: () -> Unit) {
+fun ResultsList(
+    state: SearchState.Success,
+    onItemClick: (Item) -> Unit,
+    onLoadMore: () -> Unit,
+    listQuantities: Map<String, Int>,
+    onAddToList: (Item) -> Unit,
+    onDecreaseInList: (Item) -> Unit,
+    ) {
     val listState = rememberLazyListState()
 
     val nearEnd by remember {
@@ -213,7 +241,12 @@ fun ResultsList(state: SearchState.Success, onItemClick: (Item) -> Unit, onLoadM
             )
         }
         items(state.items, key = { it.sku }) { item ->
-            ItemRow(item, onClick = { onItemClick(item) })
+            ItemRow(item,
+                quantityInList = listQuantities[item.sku] ?: 0,
+                onAdd = { onAddToList(item) },
+                onDecrease = { onDecreaseInList(item) },
+                onClick = { onItemClick(item) },
+                )
         }
         if (state.isLoadingMore) {
             item {
@@ -250,22 +283,29 @@ private fun SuggestionRow(name: String, onClick: () -> Unit) {
 }
 
 @Composable
-private fun ItemRow(item: Item, onClick: () -> Unit) {
+private fun ItemRow(
+    item: Item,
+    quantityInList: Int,
+    onAdd: () -> Unit,
+    onDecrease: () -> Unit,
+    onClick: () -> Unit
+) {
     Card(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp)) {
-            Text(item.name, style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(4.dp))
-            val location = item.aisleNumber?.let { "Aisle $it" } ?: "Location unknown"
-            Text(
-                "$location  ·  $${"%.2f".format(item.price)}",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                if (item.quantity > 0) "${item.quantity} in stock" else "Out of stock",
-                style = MaterialTheme.typography.bodySmall,
-                color = if (item.quantity > 0) MaterialTheme.colorScheme.onSurfaceVariant
-                else MaterialTheme.colorScheme.error
-            )
+        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(item.name, style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.height(4.dp))
+                val location = item.aisleNumber?.let { "Aisle $it" } ?: "Location unknown"
+                Text("$location  ·  $${"%.2f".format(item.price)}", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    if (item.quantity > 0) "${item.quantity} in stock" else "Out of stock",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (item.quantity > 0) MaterialTheme.colorScheme.onSurfaceVariant
+                    else MaterialTheme.colorScheme.error
+                )
+            }
+            Spacer(Modifier.width(8.dp))
+            AddToListControl(quantityInList, onAdd, onDecrease)
         }
     }
 }

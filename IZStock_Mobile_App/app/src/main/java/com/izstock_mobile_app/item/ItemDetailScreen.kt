@@ -27,19 +27,22 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
-import com.google.androidbrowserhelper.playbilling.digitalgoods.ItemDetails
 import com.izstock_mobile_app.R
 import com.izstock_mobile_app.data.Item
+import com.izstock_mobile_app.list.AddToListControl
 
 @Composable
 fun ItemDetailScreen(
     onBack: () -> Unit,
     onShowOnMap: (Item) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: ItemDetailViewModel = viewModel()
+    viewModel: ItemDetailViewModel = viewModel(),
+    listQuantities: Map<String, Int>,
+    onAddToList: (Item) -> Unit,
+    onDecreaseInList: (Item) -> Unit
 ) {
     val state = viewModel.state.collectAsStateWithLifecycle().value
-    ItemDetailContent(state, onBack, viewModel::load, onShowOnMap, modifier)
+    ItemDetailContent(state, onBack, viewModel::load, onShowOnMap, modifier, listQuantities, onAddToList, onDecreaseInList)
 }
 
 @Composable
@@ -48,7 +51,10 @@ fun ItemDetailContent(
     onBack: () -> Unit,
     onRetry: () -> Unit,
     onShowMap: (Item) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    listQuantities: Map<String, Int>,
+    onAddToList: (Item) -> Unit,
+    onDecreaseInList: (Item) -> Unit
 ) {
     Column(modifier.fillMaxSize()){
         Row(modifier.fillMaxWidth().padding(4.dp), verticalAlignment = Alignment.CenterVertically){
@@ -75,7 +81,7 @@ fun ItemDetailContent(
                 Text(state.message)
                 Button(onClick = onRetry) { Text("Retry") }
             }
-            is ItemDetailState.Success -> ItemDetails(state.item, onShowMap)
+            is ItemDetailState.Success -> ItemDetails(item = state.item, onShowMap, listQuantities, onAddToList, onDecreaseInList)
         }
 
     }
@@ -85,6 +91,9 @@ fun ItemDetailContent(
 fun ItemDetails(
     item: Item,
     onShowOnMap: (Item) -> Unit,
+    listQuantities: Map<String, Int>,
+    onAddToList: (Item) -> Unit,
+    onDecreaseInList: (Item) -> Unit
 ) {
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -121,6 +130,16 @@ fun ItemDetails(
                 )
                 Text("SKU: ${item.sku}", style = MaterialTheme.typography.bodySmall)
             }
+        }
+
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val inList = listQuantities[item.sku] ?: 0
+            Text(if (inList > 0) "In your list" else "Add to your list", style = MaterialTheme.typography.titleMedium)
+            AddToListControl(inList, { onAddToList(item) }, { onDecreaseInList(item) })
         }
 
         Button(
