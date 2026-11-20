@@ -9,7 +9,7 @@ router.use(requireSession);
 router.get('/list', (req, res) => {
     const list = listModel.getUserList(req.user_id);
     if(list.length === 0) return res.status(200).json({ list: 'No items in this list' })
-    res.status(200).json(listModel.getUserList(req.user_id));
+    res.status(200).json({list: listModel.getUserList(req.user_id)});
 });
 
 router.put('/list', (req, res) => {

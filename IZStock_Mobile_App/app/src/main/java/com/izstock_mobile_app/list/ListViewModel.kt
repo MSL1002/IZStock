@@ -93,6 +93,7 @@ class ListViewModel(app: Application): AndroidViewModel(app) {
     fun onSessionChanged(signedIn: Boolean) {
         val before = wasSignedIn
         wasSignedIn = signedIn
+        Log.d("ListSync", "session changed: $before -> $signedIn")
         if (before == signedIn) return
         viewModelScope.launch {
             loaded.await()
@@ -105,16 +106,21 @@ class ListViewModel(app: Application): AndroidViewModel(app) {
         }
     }
 
-    /** Re-fetches live price and stock for everything in the list. */
+    // Re-fetches live price and stock for everything in the list.
     fun refresh() {
         viewModelScope.launch { loaded.await(); refreshItems() }
     }
 
     private suspend fun syncFromServer(replace: Boolean) {
         val remote = try {
-            ApiClient.api.getList().items
+            ApiClient.api.getList().list
         } catch (e: CancellationException) { throw e }
-        catch (e: Exception) { return }       // offline: keep the local list
+        catch (e: Exception) {
+            Log.e("ListSync", "GET /me/list failed", e)
+            return
+        }       // offline: keep the local list
+
+        Log.d("Remote_content",remote.toString())
 
         val local = _entries.value
         val quantities = linkedMapOf<String, Int>()
@@ -126,7 +132,7 @@ class ListViewModel(app: Application): AndroidViewModel(app) {
         }
 
         // If the lookup fails, abort: building from partial data could erase server entries later
-        val fresh = lookupItems(quantities.keys.toList()) ?: return
+        val fresh = lookupItems(quantities.keys.toList()) ?: run { Log.e("ListSync", "lookup failed"); return }
 
         _entries.value = quantities.mapNotNull { (sku, qty) ->
             val localEntry = local.find { it.sku == sku }

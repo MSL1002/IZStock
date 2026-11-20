@@ -1,7 +1,9 @@
 package com.izstock_mobile_app.search
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -94,7 +96,8 @@ fun HomeContent(
         .fillMaxSize()
         .padding(16.dp)) {
 
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Image(painterResource(R.drawable.izstock_logo), "IZStock")
             TextButton(onClick = onAccountClick) { Text("Account") }
         }
 

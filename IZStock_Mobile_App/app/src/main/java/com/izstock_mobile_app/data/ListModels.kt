@@ -12,6 +12,6 @@ data class ListEntry(
 )
 
 @Serializable data class ServerListEntry(val sku: String, val quantity: Int)
-@Serializable data class ServerListResponse(val items: List<ServerListEntry>)
+@Serializable data class ServerListResponse(val list: List<ServerListEntry>)
 @Serializable data class ServerListBody(val items: List<ServerListEntry>)
 @Serializable data class LookupBody(val skus: List<String>)
