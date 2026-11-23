@@ -1,0 +1,52 @@
+[versions]
+agp = "9.2.1"
+#noinspection GradleDependency
+coreKtx = "1.10.1"
+junit = "4.13.2"
+#noinspection GradleDependency
+junitVersion = "1.1.5"
+#noinspection GradleDependency
+espressoCore = "3.5.1"
+kotlinxSerializationJson = "1.12.0"
+lifecycleRuntimeCompose = "2.11.0"
+#noinspection GradleDependency
+lifecycleRuntimeKtx = "2.6.1"
+#noinspection GradleDependency
+activityCompose = "1.8.0"
+#noinspection NewerVersionAvailable
+kotlin = "2.2.0"
+#noinspection GradleDependency
+composeBom = "2026.02.01"
+okhttp = "5.5.1"
+#noinspection NewerVersionAvailable
+retrofit = "2.11.0"
+billing = "1.2.0"
+material3 = "1.4.0"
+leanback = "1.2.0"
+
+[libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycleRuntimeCompose" }
+androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeCompose" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+retrofit-v2110 = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+billing = { group = "com.google.androidbrowserhelper", name = "billing", version.ref = "billing" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+androidx-leanback = { group = "androidx.leanback", name = "leanback", version.ref = "leanback" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

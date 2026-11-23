@@ -22,7 +22,7 @@ exports.replaceList = db.transaction((userID, entries) => {
     if(missing.length) return { missing };
 
     const row = db.prepare('SELECT id FROM lists WHERE user_id = ?').get(userID);
-    const listID = row ? row.id : db.prepare('INSERT INTO lists (user_id) VALUES (?)').run(userID);
+    listID = row ? row.id : db.prepare('INSERT INTO lists (user_id) VALUES (?)').run(userID);
     try{
         db.prepare('DELETE FROM list_items WHERE list_id = ?').run(listID);
     }
