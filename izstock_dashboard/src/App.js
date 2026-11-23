@@ -2,13 +2,22 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { ManagerProvider } from './context/ManagerContext';
 import RequireManager from './features/manager/RequireManager';
 import MapEditorPage from './features/map-editor/MapEditorPage';
+import InventoryPage from './features/inventory/InventoryPage';
 import { sampleMap } from './features/map-editor/sampleMap';
 
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <div className="p-4">Dashboard home (placeholder)</div>,
+    element: <InventoryPage />,
+  },
+  {
+    path: '/items/new',
+    element: <div className="p-4">New item form (next)</div>,
+  },
+  {
+    path: '/items/:sku/edit',
+    element: <div className="p-4">Edit item form (next)</div>,
   },
   {
     path: '/map-editor',
@@ -22,7 +31,7 @@ const router = createBrowserRouter([
     path: '/map-editor-sample',
     element: 
       <MapEditorPage sampleMap={sampleMap} />
-  },
+  }
 ]);
 
 export default function App() {
