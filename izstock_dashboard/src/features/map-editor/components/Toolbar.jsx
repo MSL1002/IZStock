@@ -2,14 +2,19 @@ import { useEffect, useState } from "react";
 import { Alert, Badge, Button, ButtonGroup, Modal, Spinner, ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
 import { useMapEditor } from "../MapEditorProvider";
 import { TOOLS } from "../tools";
+import { useNavigate } from "react-router-dom";
 
 export default function Toolbar() {
+
     const {
         state, actions, dirty, issues, canSave, saving, save, saveError, conflict, needsUnlock,
         canUndo, canRedo, readOnly,
     } = useMapEditor();
 
     const [confirming, setConfirming] = useState(false);
+
+    const navigate = useNavigate();
+    const canLeave = !dirty && !saving
 
     // If the save was bounced to another flow (stale version or expired token),
     // those modals take over, so close this one.
@@ -31,6 +36,16 @@ export default function Toolbar() {
     return (
         <>
             <div className= "d-flex align-items-center flex-wrap gap-3 px-3 py-2 border-bottom bg-white">
+                <span title={canLeave ? 'Back to inventory' : 'Save your changes before leaving'}>
+                    <Button
+                        size="sm"
+                        variant="outline-secondary"
+                        disabled={!canLeave}
+                        onClick={() => navigate('/')}
+                    >
+                        ← Back
+                    </Button>
+                </span>
                 <ToggleButtonGroup
                     type="radio"
                     name="map-tool"

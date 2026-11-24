@@ -17,12 +17,12 @@ export default function InventoryPage() {
   const [pg, setPage] = useState(1);
   const { items, total, loading, error, refresh } = useItems({ q, pg, pgSize: PAGE_SIZE });
 
-  console.log('render', pg)
-
   const [selected, setSelected] = useState(() => new Set()); // SKUs
   const [pending, setPending] = useState([]);                // [{ sku, name }] awaiting confirmation
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
+
+
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
@@ -94,6 +94,10 @@ export default function InventoryPage() {
 
   return (
     <div className="container-fluid py-3">
+      
+      <div class="text-end p-3">
+        <Button variant="primary" onClick={() => navigate('/map-editor')}>Map editor</Button>
+      </div>
       <div className="row g-3">
         {/* ----- inventory ----- */}
         <div className="col-lg-8">
