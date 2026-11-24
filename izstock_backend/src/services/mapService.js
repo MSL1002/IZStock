@@ -22,6 +22,16 @@ const requirePublished = () => {
 
 exports.getVersion = () => ({ version: mapModel.getMap().current_version });
 
+exports.getLocations = () => {
+    const store = requirePublished();
+    return {
+        storeId: store.store_id,
+        version: store.current_version,
+        units: mapModel.getUnits(store.store_id, store.current_version),
+        sections: mapModel.loadSections(store.store_id),
+    };
+};
+
 // reads
 
 exports.getPublic = () => {

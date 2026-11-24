@@ -11,3 +11,7 @@ export function putMap(payload, token) {
 export function getMapVersion({ signal } = {}) {
   return request('/map/version', { signal });
 }
+
+export function getLocations({ signal } = {}) {
+  return request('/locations', { signal });
+}

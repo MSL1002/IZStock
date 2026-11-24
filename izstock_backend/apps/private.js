@@ -22,10 +22,11 @@ app.use('/items', require('../src/routes/private/items'));
 app.use('/manager', require('../src/routes/private/manager'));
 app.use('/logs', require('../src/routes/private/logs'));
 app.use('/health', require('../src/routes/private/health'));
+app.use('/locations', require('../src/routes/private/locations'));
 
 // Manager-only routes
 app.use('/map', requireManager, require('../src/routes/private/map'));
-app.use('/locations', requireManager, require('../src/routes/private/locations'));
+
 
 // if else, 404
 app.use(notFound);

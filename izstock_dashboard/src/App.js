@@ -4,6 +4,7 @@ import RequireManager from './features/manager/RequireManager';
 import MapEditorPage from './features/map-editor/MapEditorPage';
 import InventoryPage from './features/inventory/InventoryPage';
 import { sampleMap } from './features/map-editor/sampleMap';
+import AddItemPage from './features/inventory/AddItemPage';
 
 
 const router = createBrowserRouter([
@@ -13,11 +14,11 @@ const router = createBrowserRouter([
   },
   {
     path: '/items/new',
-    element: <div className="p-4">New item form (next)</div>,
+    element: <AddItemPage />,
   },
   {
     path: '/items/:sku/edit',
-    element: <div className="p-4">Edit item form (next)</div>,
+    element: <div className="p-4">Edit item form (W7)</div>,
   },
   {
     path: '/map-editor',

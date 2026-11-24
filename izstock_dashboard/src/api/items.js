@@ -14,3 +14,7 @@ export function deleteItem(sku) {
 export function batchDeleteItems(skus) {
   return request('/items/batch-delete', { method: 'POST', body: { skus } });
 }
+
+export function createItem(item) {
+  return request(`/items`, { method: 'POST', body: item })
+}
