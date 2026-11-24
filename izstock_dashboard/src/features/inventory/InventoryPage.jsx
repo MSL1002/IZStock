@@ -7,15 +7,17 @@ import { useDebouncedValue } from '../../hooks/useDebounceValue';
 import { useItems } from './useItems';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = 15;
 
 export default function InventoryPage() {
   const navigate = useNavigate();
 
   const [query, setQuery] = useState('');
   const q = useDebouncedValue(query.trim());
-  const [page, setPage] = useState(1);
-  const { items, total, loading, error, refresh } = useItems({ q, page, pageSize: PAGE_SIZE });
+  const [pg, setPage] = useState(1);
+  const { items, total, loading, error, refresh } = useItems({ q, pg, pgSize: PAGE_SIZE });
+
+  console.log('render', pg)
 
   const [selected, setSelected] = useState(() => new Set()); // SKUs
   const [pending, setPending] = useState([]);                // [{ sku, name }] awaiting confirmation
@@ -29,7 +31,7 @@ export default function InventoryPage() {
   useEffect(() => { setPage(1); setSelected(new Set()); }, [q]);
 
   // deleting the last item on the last page leaves an empty page, so step back.
-  useEffect(() => { if (page > totalPages) setPage(totalPages); }, [page, totalPages]);
+  useEffect(() => { if (pg > totalPages) setPage(totalPages); }, [pg, totalPages]);
 
   /* ---------- selection ---------- */
 
@@ -187,9 +189,9 @@ export default function InventoryPage() {
               </span>
               {totalPages > 1 && (
                 <Pagination size="sm" className="mb-0">
-                  <Pagination.Prev disabled={page <= 1} onClick={() => setPage((p) => p - 1)} />
-                  <Pagination.Item active>{page} / {totalPages}</Pagination.Item>
-                  <Pagination.Next disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)} />
+                  <Pagination.Prev disabled={pg <= 1} onClick={() => setPage((p) => p - 1)} />
+                  <Pagination.Item active>{pg} / {totalPages}</Pagination.Item>
+                  <Pagination.Next disabled={pg >= totalPages} onClick={() => setPage((p) => p + 1)} />
                 </Pagination>
               )}
             </Card.Footer>

@@ -1,7 +1,7 @@
 import {request} from './client';
 
-export function listItems({ page, pageSize, q, aisle }, { signal } = {}) {
-  const params = new URLSearchParams({ page, pageSize });
+export function listItems({ pg, pgSize, q, aisle }, { signal } = {}) {
+  const params = new URLSearchParams({ pg, pgSize });
   if (q) params.set('q', q);
   if (aisle) params.set('aisle', aisle);
   return request(`/items?${params}`, { signal });
