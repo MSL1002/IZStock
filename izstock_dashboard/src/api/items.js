@@ -18,3 +18,25 @@ export function batchDeleteItems(skus) {
 export function createItem(item) {
   return request(`/items`, { method: 'POST', body: item })
 }
+
+const fromServer = (r) => ({
+  ...r,
+  shelfId: r.shelfId ?? r.shelf_id ?? null,
+  imageUrl: r.imageUrl ?? r.image_url ?? null,
+});
+
+export async function getItem(sku, { signal } = {}) {
+  return fromServer(await request(`/items/${encodeURIComponent(sku)}`, { signal }));
+}
+
+export function updateItem(sku, patch) {
+  return request(`/items/${encodeURIComponent(sku)}`, { method: 'PATCH', body: patch });
+}
+
+export function moveItem(sku, shelfId, token) {
+  return request(`/items/${encodeURIComponent(sku)}/location`, {
+    method: 'PATCH',
+    body: { shelfId },
+    token,
+  });
+}

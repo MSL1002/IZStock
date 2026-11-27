@@ -2,6 +2,7 @@ const router = require('express').Router();
 const asyncHandler = require('../../middleware/asyncHandler');
 const requireManager = require('../../middleware/requireManager');
 const itemAdminService = require('../../services/itemAdminService');
+const itemModel = require('../../models/itemModel')
 const locationService = require('../../services/locationService')
 const { parsePagination, buildPage } = require('../../utils/pagination')
 
@@ -18,6 +19,12 @@ router.post('/', asyncHandler(async (req, res) => {
 router.post('/batch-delete', asyncHandler(async (req, res) => {
   res.json(itemAdminService.batchDelete(req.body, role(req)));
 }));
+
+router.get('/:sku', (req, res) => {
+    const item = itemModel.findBySku(req.params.sku);
+    if(!item) return res.status(404).json({ error: `Item with SKU ${req.params.sku} not found` });
+    res.json(item);
+});
 
 router.patch('/:sku', asyncHandler(async (req, res) => {
   res.json(itemAdminService.update(req.params.sku, req.body, role(req)));

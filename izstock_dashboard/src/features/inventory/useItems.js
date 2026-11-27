@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import { listItems } from '../../api/items';
+import { listItems, getItem } from '../../api/items';
 
 export function useItems({ q, pg, pgSize }) {
-
-  console.log('useItems caled', { q, pg, pgSize })
 
   const [data, setData] = useState({ items: [], total: 0 });
   const [loading, setLoading] = useState(true);
@@ -16,7 +14,6 @@ export function useItems({ q, pg, pgSize }) {
   if (! pgSize ) pgSize = 15
 
   useEffect(() => {
-    console.log('fetching items', { pg, pgSize, q });
     const ctrl = new AbortController();
     setLoading(true);
     setError(null);

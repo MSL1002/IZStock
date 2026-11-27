@@ -94,8 +94,7 @@ export default function InventoryPage() {
 
   return (
     <div className="container-fluid py-3">
-      
-      <div class="text-end p-3">
+      <div className="text-end p-3">
         <Button variant="primary" onClick={() => navigate('/map-editor')}>Map editor</Button>
       </div>
       <div className="row g-3">

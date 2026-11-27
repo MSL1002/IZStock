@@ -5,6 +5,7 @@ import MapEditorPage from './features/map-editor/MapEditorPage';
 import InventoryPage from './features/inventory/InventoryPage';
 import { sampleMap } from './features/map-editor/sampleMap';
 import AddItemPage from './features/inventory/AddItemPage';
+import EditItemPage from './features/inventory/EditItemPage';
 
 
 const router = createBrowserRouter([
@@ -18,7 +19,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/items/:sku/edit',
-    element: <div className="p-4">Edit item form (W7)</div>,
+    element: <EditItemPage />,
   },
   {
     path: '/map-editor',

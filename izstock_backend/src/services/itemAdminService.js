@@ -7,8 +7,8 @@ const { parsePagination, buildPage } = require('../utils/pagination.js');
 const bad = (msg, field) => new AppError(422, 'VALIDATION_FAILED', msg, field && [{ field }]);
 
 const assertKnownFields = (body, allowed) => {
-  const unknown = Object.keys(body ?? {}).filter((k) => !allowed.includes(k));
-  if (unknown.length) throw new AppError(400, 'MALFORMED_REQUEST', 'Unknown field(s) in body', unknown);
+    const unknown = Object.keys(body ?? {}).filter((k) => !allowed.includes(k));
+    if (unknown.length) throw new AppError(400, 'MALFORMED_REQUEST', 'Unknown field(s) in body', unknown);
 };
 
 const validName = (v) => typeof v === 'string' && v.trim().length >= 1 && v.trim().length <= 120;

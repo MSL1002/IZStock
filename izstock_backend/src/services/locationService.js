@@ -36,26 +36,26 @@ const parseMoves = (body, max, entryFields) => {
 const findShelf = (id) => 
     db.prepare('SELECT 1 FROM shelves WHERE id = ?').get(id);
 
-exports.moveItem = (sku, body, role) => {
-    console.log('move item running')
-    assertKnownFields(body, ['shelfId']);
-    if (!nonEmpty(body.shelfId)) throw bad('shelfId', 'shelfId is required');
-
-    const item = itemModel.findBySku(sku);
-    if (!item) throw new AppError(404, 'NOT_FOUND', 'Item not found');
-    if (!findShelf(body.shelfId)) {
-        throw new AppError(422, 'SHELF_NOT_FOUND', 'shelfId is not on the published map');
+exports.moveItem = (sku, body, manager) => {
+    const keys = Object.keys(body ?? {});
+    if (keys.length !== 1 || keys[0] !== 'shelfId' || typeof body.shelfId !== 'string') {
+        throw new AppError(422, 'VALIDATION_FAILED', 'Send { shelfId } as a string.');
     }
-    if (item.shelfId === body.shelfId) return item;
+    const item = itemModel.get(sku);
+    if (!item) throw new AppError(404, 'NOT_FOUND', 'Item not found.');
+    if (!mapModel.shelfExists(body.shelfId)) {
+        throw new AppError(422, 'SHELF_NOT_FOUND', 'That shelf is not on the current map.');
+    }
 
+    const from = item.shelf_id;
     db.transaction(() => {
         itemModel.setShelf(sku, body.shelfId);
         logModel.write({
-            action: 'update', entityType: 'item', entityId: sku, performedBy: role,
-            details: { fromShelfId: item.shelfId, toShelfId: body.shelfId },
+            action: 'move', entity_type: 'item', entity_id: sku,
+            performed_by: manager.editedBy, details: { from, to: body.shelfId },
         });
     })();
-    return itemModel.findBySku(sku);
+    return itemModel.getView(sku); // camelCase: sku, name, price, quantity, shelfId, imageUrl
 };
 
 exports.moveShelves = (body, role) => {
