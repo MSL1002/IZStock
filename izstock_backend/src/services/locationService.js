@@ -33,9 +33,6 @@ const parseMoves = (body, max, entryFields) => {
     return moves;
 };
 
-const findShelf = (id) => 
-    db.prepare('SELECT 1 FROM shelves WHERE id = ?').get(id);
-
 exports.moveItem = (sku, body, manager) => {
     const keys = Object.keys(body ?? {});
     if (keys.length !== 1 || keys[0] !== 'shelfId' || typeof body.shelfId !== 'string') {
@@ -55,7 +52,7 @@ exports.moveItem = (sku, body, manager) => {
             performed_by: manager.editedBy, details: { from, to: body.shelfId },
         });
     })();
-    return itemModel.getView(sku); // camelCase: sku, name, price, quantity, shelfId, imageUrl
+    return itemModel.getView(sku);
 };
 
 exports.moveShelves = (body, role) => {
